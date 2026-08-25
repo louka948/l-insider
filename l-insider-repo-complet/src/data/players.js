@@ -532,9 +532,11 @@ const PLAYER_IMAGES = {
   "Juan Román Riquelme": "https://commons.wikimedia.org/wiki/Special:FilePath/Juan_Rom%C3%A1n_Riquelme_-_2019.jpg",
   "Pablo Aimar": "https://commons.wikimedia.org/wiki/Special:FilePath/Pablo_Aimar_Argentina_v_Egypt_7_July_2026-080.jpg",
   "Robert Pirès": "https://commons.wikimedia.org/wiki/Special:FilePath/Robert_Pires1.JPG",
-  // Youri Djorkaeff : retiré volontairement — la seule photo libre trouvée
-  // sur Commons est un plan large de corner où il est à peine visible,
-  // moins utile que la silhouette générique pour ce jeu.
+  // Youri Djorkaeff : la photo de corner initialement trouvée était en effet
+  // inutilisable (plan large, à peine visible), mais un vrai portrait existe
+  // sur Commons (conférence de presse, 2011, CC-BY-SA 3.0, licence vérifiée
+  // VRT) — trouvé et ajouté le 25 août 2026 suite à un retour utilisateur.
+  "Youri Djorkaeff": "https://commons.wikimedia.org/wiki/Special:FilePath/Youri_Djorkaeff_2011.jpg",
   "Hristo Stoichkov": "https://commons.wikimedia.org/wiki/Special:FilePath/Stoichkov_in_2016.jpg",
   "Gheorghe Hagi": "https://commons.wikimedia.org/wiki/Special:FilePath/Gheorghe_Hagi3_cropped.jpg",
   "George Best": "https://commons.wikimedia.org/wiki/Special:FilePath/George_Best_(1976).jpg",
