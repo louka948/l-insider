@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
 <title>L'Insider</title>
 <link rel="icon" href="data:,">
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "01b4ff1f20dd45c78c020f1af4ad4f8c"}'></script><!-- End Cloudflare Web Analytics -->
@@ -1549,7 +1549,13 @@ const styles = {
     color: COLORS.textPrimary,
     position: "relative",
     overflow: "hidden",
-    padding: "20px 14px 40px",
+    // Le header (boutons aide/classement/compte) doit dégager l'encoche/île
+    // dynamique/status bar en app native (WebView plein écran, pas de chrome
+    // navigateur qui offrirait cette marge gratuitement) — d'où le
+    // env(safe-area-inset-top) en plus du padding de base. Nécessite
+    // viewport-fit=cover sur la balise <meta viewport> (sinon env() vaut 0).
+    // Idem en bas pour dégager la home indicator bar.
+    padding: "calc(20px + env(safe-area-inset-top)) 14px calc(40px + env(safe-area-inset-bottom))",
   },
   // Ruler de dossier : une fine règle graduée en haut de l'écran (façon
   // marge de feuille de match), pas une ligne de pelouse centrale.
