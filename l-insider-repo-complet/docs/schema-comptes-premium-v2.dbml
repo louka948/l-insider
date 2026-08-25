@@ -1,0 +1,66 @@
+// Schéma de données v2 — Imposteur Foot : comptes + historique + premium
+//
+// Version simplifiée par rapport au v1, suite à la clarification du modèle
+// économique : PAS de compte gratuit permanent. Deux états seulement :
+//
+//   1. ANONYME (pas de compte) : 5 parties à vie, uniquement le mode
+//      "Undercover classique" le plus brut (pas de catégorie/championnat,
+//      pas de mode de jeu, pas de chrono). Ce compteur de 5 parties est
+//      suivi EN LOCAL sur l'appareil (stockage de l'appli, pas de base de
+//      données) — pas besoin de compte pour jouer un minimum.
+//
+//   2. COMPTE VIA ABONNEMENT (essai gratuit 7 jours puis 3,99€/mois) :
+//      parties illimitées + tout ce qui est déjà développé (catégories,
+//      championnats, générations, modes de jeu, chrono...). Créer un
+//      compte = démarrer l'essai ou l'abonnement, il n'y a pas de compte
+//      "gratuit" qui resterait limité indéfiniment.
+//
+// Conséquence : on n'a plus besoin de la table plan_limits du v1 (il n'y a
+// qu'un seul niveau payant qui débloque tout, pas plusieurs paliers à
+// configurer), ni d'un champ "plan" sur users (l'accès actif se déduit de
+// la table subscriptions : a-t-on une ligne avec status trialing/active et
+// une date de fin pas encore passée ?). Le schéma est plus simple, pas plus
+// compliqué, que le v1 — normal, la règle produit s'est clarifiée.
+//
+// Comment l'utiliser : coller ce fichier sur https://dbdiagram.io (Import >
+// DBML) pour le voir dessiné.
+
+Table users {
+  id uuid [pk, default: `gen_random_uuid()`]
+  email varchar [not null, unique]
+  display_name varchar
+  avatar_url varchar [note: 'photo de profil']
+  created_at timestamp [not null, default: `now()`]
+
+  note: 'Une ligne ici = quelqu\'un qui a démarré l\'essai gratuit ou l\'abonnement. Pas de compte "juste pour l\'historique" sans passer par là — le jeu anonyme (5 parties, mode brut) ne touche jamais cette table.'
+}
+
+Table subscriptions {
+  id uuid [pk, default: `gen_random_uuid()`]
+  user_id uuid [not null, ref: > users.id]
+  stripe_customer_id varchar
+  stripe_subscription_id varchar
+  status varchar [not null, note: 'trialing / active / past_due / canceled / incomplete']
+  price_cents int [note: '399 = 3,99€/mois']
+  current_period_start timestamp
+  current_period_end timestamp
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+
+  note: 'Historique complet des abonnements (on garde toutes les lignes, pas juste la dernière). Accès premium actif = il existe une ligne avec status in (trialing, active) ET current_period_end pas encore dépassé. Si un utilisateur annule/ne paie plus, son compte et son historique restent, mais il perd l\'accès illimité tant qu\'il n\'a pas de ligne active.'
+}
+
+Table game_history {
+  id uuid [pk, default: `gen_random_uuid()`]
+  user_id uuid [not null, ref: > users.id, note: 'uniquement les comptes payants/en essai — les parties jouées en anonyme ne sont jamais enregistrées ici']
+  category varchar [not null, note: 'EFFECTIF / CLUB(Championnat) / EPOQUE — correspond à CATEGORIES dans game-engine.js']
+  championship varchar [note: 'ex: Premier League — rempli seulement si category = Championnat']
+  era varchar
+  game_mode varchar [not null]
+  num_players int [not null]
+  num_infiltrators int [not null]
+  has_blank_card boolean [not null, default: false]
+  winner_side varchar [note: 'civils / infiltres / blanc / null si partie abandonnée']
+  played_at timestamp [not null, default: `now()`]
+  duration_seconds int
+}

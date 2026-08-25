@@ -1,0 +1,60 @@
+// Schéma de données v3 — Imposteur Foot : comptes + historique + premium hybride
+//
+// Changement par rapport au v2 : le premium n'est plus SEULEMENT un
+// abonnement (3,99€/mois, essai 7 jours) — on propose AUSSI un déblocage
+// définitif en paiement unique ("à vie"), comme le fait la concurrence
+// directe (Undercover Football à 6,99€ à vie). Décision prise après avoir
+// comparé les deux modèles : sous ~1,75 mois de rétention moyenne par
+// abonné, l'abonnement seul est plus dur à faire décoller que le paiement
+// unique pour atteindre un même montant — l'hybride laisse le marché
+// choisir plutôt que de parier sur un seul modèle sans données réelles.
+//
+// La seule table qui change vraiment est l'ancienne "subscriptions", qui
+// devient "purchases" et gère les deux types d'achat (abonnement récurrent
+// OU paiement unique à vie) au lieu d'un seul. users et game_history sont
+// inchangées par rapport au v2.
+//
+// Comment l'utiliser : coller ce fichier sur https://dbdiagram.io (Import >
+// DBML) pour le voir dessiné.
+
+Table users {
+  id uuid [pk, default: `gen_random_uuid()`]
+  email varchar [not null, unique]
+  display_name varchar
+  avatar_url varchar [note: 'photo de profil']
+  created_at timestamp [not null, default: `now()`]
+
+  note: 'Une ligne ici = quelqu\'un qui a démarré l\'essai, l\'abonnement, ou acheté le déblocage à vie. Toujours pas de compte "juste gratuit" — le jeu anonyme (5 parties, mode brut) ne touche jamais cette table.'
+}
+
+Table purchases {
+  id uuid [pk, default: `gen_random_uuid()`]
+  user_id uuid [not null, ref: > users.id]
+  type varchar [not null, note: 'subscription (récurrent, 3,99€/mois) OU lifetime (paiement unique, débloque tout définitivement)']
+  status varchar [not null, note: 'pour type=subscription : trialing / active / past_due / canceled / incomplete. Pour type=lifetime : simplement "paid" une fois le paiement confirmé.']
+  stripe_customer_id varchar
+  stripe_subscription_id varchar [note: 'rempli seulement si type=subscription']
+  stripe_payment_intent_id varchar [note: 'rempli seulement si type=lifetime — référence du paiement unique Stripe']
+  price_cents int [note: '399 pour l\'abonnement mensuel, montant du déblocage à vie sinon (ex: 699)']
+  current_period_start timestamp [note: 'rempli seulement si type=subscription']
+  current_period_end timestamp [note: 'rempli seulement si type=subscription — null pour lifetime, l\'accès ne périme jamais']
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+
+  note: 'Historique complet des achats (on garde toutes les lignes). Accès premium actif = il existe une ligne avec (type=lifetime ET status=paid), OU (type=subscription ET status in (trialing,active) ET current_period_end pas encore dépassé). Un même utilisateur pourrait techniquement avoir essayé l\'abonnement puis acheté le lifetime plus tard, ou l\'inverse — l\'un ou l\'autre suffit à débloquer l\'accès.'
+}
+
+Table game_history {
+  id uuid [pk, default: `gen_random_uuid()`]
+  user_id uuid [not null, ref: > users.id, note: 'uniquement les comptes — les parties jouées en anonyme ne sont jamais enregistrées ici']
+  category varchar [not null, note: 'EFFECTIF / CLUB(Championnat) / EPOQUE — correspond à CATEGORIES dans game-engine.js']
+  championship varchar [note: 'ex: Premier League — rempli seulement si category = Championnat']
+  era varchar
+  game_mode varchar [not null]
+  num_players int [not null]
+  num_infiltrators int [not null]
+  has_blank_card boolean [not null, default: false]
+  winner_side varchar [note: 'civils / infiltres / blanc / null si partie abandonnée']
+  played_at timestamp [not null, default: `now()`]
+  duration_seconds int
+}

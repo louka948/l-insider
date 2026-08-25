@@ -1,0 +1,47 @@
+# En-têtes de sécurité HTTP pour le déploiement Netlify.
+#
+# Ajouté suite à l'audit de sécurité du 23 août 2026 (voir
+# audit-securite-imposteur-foot.md, section 23, 🟠 ÉLEVÉ) : sans ce fichier,
+# le site n'envoyait aucun en-tête de sécurité, ce qui permettait par
+# exemple à un site tiers d'embarquer le jeu dans une iframe invisible
+# (clickjacking) pour piéger un clic sur "S'abonner".
+#
+# ⚠️ IMPORTANT — déploiement manuel (voir docs/guide-mise-en-ligne.md) :
+# Netlify ne lit ce fichier que s'il se trouve À LA RACINE DU DOSSIER
+# publié, au même niveau que index.html. Comme le déploiement se fait en
+# glissant un dossier contenant uniquement index.html, il faut désormais
+# mettre CE FICHIER ("_headers", sans extension) DANS LE MÊME DOSSIER que
+# index.html avant de le glisser dans Netlify — sinon les en-têtes ne
+# s'appliquent pas. Voir docs/guide-mise-en-ligne.md, étape 2, mis à jour
+# en conséquence.
+#
+# Content-Security-Policy expliquée directive par directive : le jeu est un
+# fichier HTML unique avec du JS/CSS inline (contrainte du projet, voir
+# CLAUDE.md — pas de build webpack/vite), donc script-src et style-src ont
+# besoin de 'unsafe-inline'. Ce n'est pas idéal en théorie, mais cohérent
+# avec le fait qu'aucun secret ni logique sensible ne dépend de cette
+# protection (voir audit, section 18) — la CSP protège ici surtout contre
+# l'injection de contenu tiers (XSS via une dépendance compromise, iframe
+# de clickjacking), pas contre un script inline qui serait déjà le tien.
+#   - img-src : upload.wikimedia.org/commons.wikimedia.org/fr.wikipedia.org
+#     pour les photos de joueurs (voir src/data/players.js), *.supabase.co
+#     pour les photos de profil (bucket avatars public en lecture).
+#   - media-src : archive.org pour la musique d'ambiance (voir MUSIC_URL
+#     dans src/app/imposteurfoot_11.html).
+#   - connect-src : *.supabase.co pour les appels Auth/REST/Storage/Edge
+#     Functions, cloudflareinsights.com pour les analytics.
+#   - Stripe n'a besoin d'aucune directive ici : le paiement se fait par
+#     redirection de page complète (window.location.href), jamais par
+#     fetch() ni iframe, donc hors du champ de cette CSP.
+#   - frame-ancestors 'none' : personne ne peut embarquer le jeu en iframe
+#     (protection anti-clickjacking moderne — X-Frame-Options ci-dessous
+#     fait la même chose pour les navigateurs plus anciens qui ne
+#     comprennent pas frame-ancestors).
+
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), interest-cohort=()
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://commons.wikimedia.org https://upload.wikimedia.org https://fr.wikipedia.org https://*.supabase.co; media-src 'self' https://archive.org https://*.archive.org; connect-src 'self' https://*.supabase.co https://static.cloudflareinsights.com https://cloudflareinsights.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'

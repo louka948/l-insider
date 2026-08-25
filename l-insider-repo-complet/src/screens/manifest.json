@@ -1,0 +1,22 @@
+[
+  "SetupScreen",
+  "SectionLabel",
+  "StepperBtn",
+  "RulesScreen",
+  "ScoreboardScreen",
+  "QuitConfirmModal",
+  "AccountScreen",
+  "RevealScreen",
+  "DiscussTimer",
+  "ClueScreen",
+  "TurnQuestionScreen",
+  "FreestyleScreen",
+  "VoteScreen",
+  "EliminatedScreen",
+  "BlancGuessScreen",
+  "Confetti",
+  "HappyMascot",
+  "SadMascot",
+  "EndScreen",
+  "NewsletterPrompt"
+]

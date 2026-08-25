@@ -1,0 +1,18 @@
+{
+  "name": "imposteur-foot",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Undercover version foot — filet de test e2e minimal (voir tests/e2e.test.js).",
+  "scripts": {
+    "test": "node tests/e2e.test.js",
+    "build": "node build/build.js",
+    "dev": "node build/dev-preview.js",
+    "cap:sync": "npm run build && mkdir -p www && cp index.html www/index.html && npx cap sync"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.5.0",
+    "@capacitor/cli": "^8.5.0",
+    "@capacitor/core": "^8.5.0",
+    "@capacitor/ios": "^8.5.0"
+  }
+}
