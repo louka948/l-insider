@@ -66,5 +66,16 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<!-- Sans ces deux clés, iOS ne se contente pas de refuser l'accès : il TUE
+	     l'app instantanément dès qu'on tape "Prendre une photo" sur l'input
+	     file (<input type="file" accept="image/*"> dans SetupScreen/AccountScreen
+	     pour la photo de profil). La galerie fonctionnait déjà car le sélecteur
+	     photo moderne (PHPicker) n'a besoin d'aucune permission Info.plist —
+	     seul l'appareil photo (UIImagePickerController) l'exige. Bug identifié
+	     le 25 août 2026 lors d'un test sur iPhone réel. -->
+	<key>NSCameraUsageDescription</key>
+	<string>L'Insider a besoin d'accéder à l'appareil photo pour prendre une photo de profil.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>L'Insider a besoin d'accéder à vos photos pour choisir une photo de profil.</string>
 </dict>
 </plist>
