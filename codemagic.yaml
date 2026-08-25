@@ -9,6 +9,15 @@ workflows:
         XCODE_PROJECT: "l-insider-repo-complet/ios/App/App.xcodeproj"
         XCODE_SCHEME: "App"
     scripts:
+      - name: Install dependencies and sync web assets
+        script: |
+          set -e
+          cd l-insider-repo-complet
+          npm install
+          cd build
+          npm install
+          cd ..
+          npm run cap:sync
       - name: Build unsigned .app
         script: |
           xcodebuild \
