@@ -80,11 +80,14 @@ function RulesScreen({ onClose }) {
 
           {/* Lien obligatoire (Apple/RGPD) : accessible depuis l'app, pas seulement
               depuis la fiche store. Fichier statique déployé à côté de index.html
-              (voir politique-confidentialite.html à la racine du dépôt). Volontairement
-              plus visible que le crédit musique ci-dessus (lien fonctionnel/légal, pas
-              une simple attribution décorative). */}
+              (voir politique-confidentialite.html à la racine du dépôt), MAIS on pointe
+              ici vers l'URL absolue de production (pas un chemin relatif) : en app
+              native (Capacitor), le WebView ne contient que index.html — un lien
+              relatif ne résout vers rien. Une URL http(s) absolue, elle, est ouverte
+              par Capacitor dans le navigateur système, donc fonctionne à la fois en
+              PWA web et en app native. */}
           <p style={{ ...styles.rulesText, opacity: 0.85, fontSize: 12.5, marginTop: 8 }}>
-            <a href="./politique-confidentialite.html" target="_blank" rel="noopener" style={{ color: COLORS.gold, fontWeight: 700 }}>
+            <a href="https://imposteur-foot.netlify.app/politique-confidentialite.html" target="_blank" rel="noopener" style={{ color: COLORS.gold, fontWeight: 700 }}>
               Politique de confidentialité
             </a>
           </p>
