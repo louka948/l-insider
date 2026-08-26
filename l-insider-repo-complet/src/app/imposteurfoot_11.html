@@ -1033,17 +1033,17 @@ function ImposteurFoot() {
       while (next.length > n) next.pop();
       return next;
     });
-    // Plafonds alignés sur SetupScreen.jsx (maxUndercover/maxBlanc) : jusqu'à
-    // la moitié de l'effectif peut être infiltrée (depuis le 24 août 2026),
-    // et pareil pour les cartes blanches (depuis le 25 août 2026) — les deux
-    // compteurs se partagent le même budget, il doit toujours rester au
-    // moins 1 civil. On calcule en cascade (undercover d'abord, puis blanc
-    // en fonction du nouvel undercover) pour ne jamais violer cette règle
-    // quand l'effectif rétrécit.
-    const newMaxUndercover = Math.max(1, Math.floor(n / 2));
+    // Plafonds alignés sur SetupScreen.jsx (maxUndercover/maxBlanc). Depuis
+    // le 26 août 2026, sur retour explicite de l'utilisateur, plus aucun
+    // plafond arbitraire lié à l'effectif (ni moitié, ni tiers) : la seule
+    // contrainte incompressible est qu'il reste toujours au moins 1 civil.
+    // On calcule en cascade (undercover d'abord, puis blanc en fonction du
+    // nouvel undercover) pour ne jamais violer cette règle quand l'effectif
+    // rétrécit.
+    const newMaxUndercover = Math.max(1, n - 1);
     const clampedUndercover = Math.min(numUndercover, newMaxUndercover);
     setNumUndercover(clampedUndercover);
-    const newMaxBlanc = Math.max(0, Math.min(Math.floor(n / 2), n - clampedUndercover - 1));
+    const newMaxBlanc = Math.max(0, n - clampedUndercover - 1);
     setNumBlanc((b) => Math.min(b, newMaxBlanc));
   }
 
