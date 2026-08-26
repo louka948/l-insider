@@ -201,12 +201,16 @@ function formatClock(totalSeconds) {
 // Barème du classement cumulé : les civils marquent 1 point chacun quand
 // leur camp l'emporte, les infiltrés (undercover + carte blanche encore en
 // jeu) 2 points chacun, et la carte blanche qui devine juste et gagne seule
-// empoche un bonus de 3 points, elle seule.
-function computeRoundPoints(playersList, winnerSide) {
+// empoche un bonus de 3 points, elle seule — pas les autres cartes blanches
+// encore en jeu s'il y en a plusieurs dans la manche (blancGuesserId permet
+// de distinguer LAQUELLE a deviné juste ; sans lui, toutes les cartes
+// blanches recevraient le bonus, ce qui n'aurait de sens que tant qu'il ne
+// pouvait y en avoir qu'une seule — plus vrai depuis le 25 août 2026).
+function computeRoundPoints(playersList, winnerSide, blancGuesserId) {
   const points = {};
   playersList.forEach((p) => {
     if (winnerSide === "blanc") {
-      points[p.id] = p.role === "blanc" ? 3 : 0;
+      points[p.id] = p.id === blancGuesserId ? 3 : 0;
     } else if (winnerSide === "civils") {
       points[p.id] = p.role === "civil" ? 1 : 0;
     } else if (winnerSide === "infiltres") {
