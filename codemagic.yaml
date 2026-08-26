@@ -45,8 +45,12 @@ workflows:
       - LInsider-unsigned.ipa
 
   android-debug:
+    # Linux (linux_x2/linux_x4) n'est disponible qu'avec facturation activee
+    # sur ce compte Codemagic (pas de minutes gratuites hors macOS) -> on
+    # construit l'APK Android sur la meme machine Mac gratuite que l'iOS
+    # (500 min/mois offertes), qui inclut aussi le SDK Android + Gradle.
     name: L'Insider - Android build
-    instance_type: linux_x2
+    instance_type: mac_mini_m2
     max_build_duration: 30
     environment:
       java: 17
@@ -68,6 +72,8 @@ workflows:
       - name: Build debug APK
         script: |
           set -e
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
           cd l-insider-repo-complet/android
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon
