@@ -775,7 +775,10 @@ function ImposteurFoot() {
   const [names, setNames] = useState(Array.from({ length: 6 }, (_, i) => `Joueur ${i + 1}`));
   const [photos, setPhotos] = useState(Array.from({ length: 6 }, () => null));
   const [numUndercover, setNumUndercover] = useState(1);
-  const [mrBlanc, setMrBlanc] = useState(false);
+  // Carte(s) blanche(s) : un compteur comme les infiltrés (jusqu'au 25 août
+  // 2026 c'était un simple interrupteur 0/1 — changé sur retour utilisateur
+  // pour laisser le choix du nombre, exactement comme pour les infiltrés).
+  const [numBlanc, setNumBlanc] = useState(0);
   const [category, setCategory] = useState("LIBRE");
   const [selectedClub, setSelectedClub] = useState(null);
   const [era, setEra] = useState("ALL");
@@ -1030,9 +1033,18 @@ function ImposteurFoot() {
       while (next.length > n) next.pop();
       return next;
     });
-    // Plafond aligné sur SetupScreen.jsx (maxUndercover) : jusqu'à la moitié
-    // de l'effectif peut être infiltrée depuis le 24 août 2026.
-    setNumUndercover((u) => Math.min(u, Math.max(1, Math.floor(n / 2))));
+    // Plafonds alignés sur SetupScreen.jsx (maxUndercover/maxBlanc) : jusqu'à
+    // la moitié de l'effectif peut être infiltrée (depuis le 24 août 2026),
+    // et pareil pour les cartes blanches (depuis le 25 août 2026) — les deux
+    // compteurs se partagent le même budget, il doit toujours rester au
+    // moins 1 civil. On calcule en cascade (undercover d'abord, puis blanc
+    // en fonction du nouvel undercover) pour ne jamais violer cette règle
+    // quand l'effectif rétrécit.
+    const newMaxUndercover = Math.max(1, Math.floor(n / 2));
+    const clampedUndercover = Math.min(numUndercover, newMaxUndercover);
+    setNumUndercover(clampedUndercover);
+    const newMaxBlanc = Math.max(0, Math.min(Math.floor(n / 2), n - clampedUndercover - 1));
+    setNumBlanc((b) => Math.min(b, newMaxBlanc));
   }
 
   function enterDiscuss() {
@@ -1069,7 +1081,7 @@ function ImposteurFoot() {
 
     const roles = [];
     for (let i = 0; i < numUndercover; i++) roles.push("undercover");
-    if (mrBlanc) roles.push("blanc");
+    for (let i = 0; i < numBlanc; i++) roles.push("blanc");
     while (roles.length < count) roles.push("civil");
     const shuffledRoles = shuffle(roles);
 
@@ -1127,8 +1139,8 @@ function ImposteurFoot() {
   // les points de la manche au classement cumulé et ajoute une ligne à
   // l'historique. Le classement et l'historique survivent à "Nouvelle
   // partie" (ils ne sont remis à zéro que depuis le tableau des scores).
-  function finishGame(finalPlayers, winnerSide) {
-    const pts = computeRoundPoints(finalPlayers, winnerSide);
+  function finishGame(finalPlayers, winnerSide, blancGuesserId) {
+    const pts = computeRoundPoints(finalPlayers, winnerSide, blancGuesserId);
     setLastRoundPoints(pts);
     setScores((prev) => {
       const next = { ...prev };
@@ -1145,7 +1157,7 @@ function ImposteurFoot() {
       return next;
     });
     setRoundHistory((prev) => [
-      { round, winner: winnerSide, civil: pairWords.civil, undercover: pairWords.undercover, mrBlanc },
+      { round, winner: winnerSide, civil: pairWords.civil, undercover: pairWords.undercover, numBlanc },
       ...prev,
     ]);
     setWinner(winnerSide);
@@ -1173,7 +1185,7 @@ function ImposteurFoot() {
         game_mode: mode,
         num_players: count,
         num_infiltrators: numUndercover,
-        has_blank_card: mrBlanc,
+        has_blank_card: numBlanc > 0,
         winner_side: winnerSide,
         duration_seconds: durationSeconds,
       })
@@ -1207,7 +1219,10 @@ function ImposteurFoot() {
     const correct = blancGuess.trim().toLowerCase() === pairWords.civil.trim().toLowerCase();
     setBlancResult(correct);
     if (correct) {
-      finishGame(players, "blanc");
+      // Seul·e le/la joueur·euse carte blanche qui devine gagne le bonus de
+      // 3 points — pas les autres cartes blanches encore en jeu s'il y en a
+      // plusieurs (voir computeRoundPoints dans game-engine.js).
+      finishGame(players, "blanc", lastEliminated.id);
     } else {
       const w = checkWinner(players);
       if (w) {
@@ -1325,8 +1340,8 @@ function ImposteurFoot() {
             setPhotos={setPhotos}
             numUndercover={numUndercover}
             setNumUndercover={setNumUndercover}
-            mrBlanc={mrBlanc}
-            setMrBlanc={setMrBlanc}
+            numBlanc={numBlanc}
+            setNumBlanc={setNumBlanc}
             category={category}
             setCategory={setCategory}
             selectedClub={selectedClub}
