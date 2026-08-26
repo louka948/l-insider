@@ -267,7 +267,6 @@ const RAW_PLAYERS = [
   ["Stefan Kießling", "ATT", "CF", [2000, 2010], "Allemagne", 0, 1, "Bayer Leverkusen"],
   ["Miroslav Klose", "ATT", "CF", [2000, 2010], "Allemagne", 0, 1, "Werder Brême"],
   ["Claudio Pizarro", "ATT", "CF", [2000, 2010, 2020], "Pérou", 0, 1, "Werder Brême"],
-  ["Torsten Frings", "MID", "CM", [2000, 2010], "Allemagne", 0, 0, "Werder Brême"],
   ["David Trezeguet", "ATT", "CF", [1990, 2000, 2010], "France", 0, 1, "AS Monaco"],
   ["Radamel Falcao", "ATT", "CF", [2010, 2020], "Colombie", 0, 1, "AS Monaco"],
 
