@@ -91,3 +91,16 @@ workflows:
           ./gradlew assembleDebug --no-daemon
     artifacts:
       - l-insider-repo-complet/android/app/build/outputs/apk/debug/*.apk
+    publishing:
+      # Envoie un e-mail avec un lien de telechargement de l'APK qui ne
+      # necessite PAS d'etre connecte a Codemagic (contrairement au lien de
+      # telechargement affiche dans l'interface web, qui renvoie une erreur
+      # 403 FORBIDDEN si on l'ouvre depuis un telephone non connecte a
+      # Codemagic). Duree de validite du lien : reglee sur 24h dans
+      # Personal Account settings > Artifact download links.
+      email:
+        recipients:
+          - loukainiesta@gmail.com
+        notify:
+          success: true
+          failure: false
