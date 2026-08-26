@@ -6,6 +6,37 @@
 // ---------------------------------------------------------------------------
 
 function EndScreen({ winner, players, pairWords, lastRoundPoints, onReset, onShowScoreboard }) {
+  // Bouton "Partager avec tes potes" — ajouté le 26 août 2026 (recommandation
+  // marketing) : la fin de partie est le moment le plus naturel pour partager
+  // le jeu, puisque tout le groupe qui vient d'y jouer est déjà réuni autour
+  // du même téléphone. Web Share API quand disponible (partage natif vers
+  // WhatsApp/Messages/etc.), sinon copie du lien dans le presse-papiers avec
+  // une confirmation brève "Lien copié !".
+  const [shareState, setShareState] = useState("idle"); // idle | copied
+  async function handleShare() {
+    const shareData = {
+      title: "L'Insider",
+      text: "On vient de jouer à L'Insider, le jeu d'imposteur foot entre potes — essaie !",
+      url: SHARE_URL,
+    };
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (e) {
+        // Annulation du partage par l'utilisateur (ou API indisponible en
+        // pratique malgré sa présence) : on ne fait rien, ce n'est pas une erreur.
+      }
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(SHARE_URL);
+      setShareState("copied");
+      setTimeout(() => setShareState("idle"), 2000);
+    } catch (e) {
+      // Presse-papiers indisponible (contexte non sécurisé, permission refusée…) :
+      // on échoue silencieusement plutôt que de casser l'écran de fin.
+    }
+  }
   const label = winner === "civils" ? "Les civils gagnent" : winner === "infiltres" ? "Les infiltrés gagnent" : "La carte blanche gagne";
   const colorMap = {
     civils: { win: COLORS.civilGreenBright, lose: COLORS.danger },
@@ -74,6 +105,9 @@ function EndScreen({ winner, players, pairWords, lastRoundPoints, onReset, onSho
           <Trophy size={16} /> Voir le classement
         </button>
       )}
+      <button style={styles.secondaryBtn} onClick={handleShare}>
+        <Share2 size={16} /> {shareState === "copied" ? "Lien copié !" : "Partager avec tes potes"}
+      </button>
 
       {NEWSLETTER_URL && <NewsletterPrompt />}
     </div>

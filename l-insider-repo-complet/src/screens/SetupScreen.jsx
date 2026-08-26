@@ -88,8 +88,8 @@ function SetupScreen({ count, resizeNames, names, setNames, photos, setPhotos, n
             <div style={styles.anonBannerSub}>
               {blocked
                 ? hasAccount
-                  ? "Passe premium (abonnement ou accès à vie) pour continuer à jouer, sans limite."
-                  : "Crée un compte et passe premium pour continuer à jouer, sans limite."
+                  ? "Passe premium (abonnement ou accès à vie) pour continuer la soirée avec tes potes, sans limite."
+                  : "Crée un compte et passe premium pour continuer la soirée avec tes potes, sans limite."
                 : "Toutes les options sont débloquées pendant tes parties gratuites."}
             </div>
           </div>
