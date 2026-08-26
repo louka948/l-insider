@@ -411,7 +411,7 @@ const PLAYER_IMAGES = {
   "Klaas-Jan Huntelaar": "https://commons.wikimedia.org/wiki/Special:FilePath/Klaas-Jan_Huntelaar_in_2015_(crop).png",
   "Julian Draxler": "https://commons.wikimedia.org/wiki/Special:FilePath/2019-06-11_Fu%C3%9Fball,_M%C3%A4nner,_L%C3%A4nderspiel,_Deutschland-Estland_StP_2278_LR10_by_Stepro_-_Julian_Draxler_(cropped).jpg",
   "Ivan Rakitić": "https://commons.wikimedia.org/wiki/Special:FilePath/Ivan_Rakiti%C4%87_2020_(cropped).jpg",
-  "Florian Wirtz": "https://commons.wikimedia.org/wiki/Special:FilePath/Florian_Wirtz_2024.jpg",
+  "Florian Wirtz": "https://commons.wikimedia.org/wiki/Special:FilePath/Florian_Wirtz_Ecuador_v_Germany_25_June_2026-007.jpg",
   "Kai Havertz": "https://commons.wikimedia.org/wiki/Special:FilePath/Kai_Havertz_2020.jpg",
   "Stefan Kießling": "https://commons.wikimedia.org/wiki/Special:FilePath/Stefan_Kie%C3%9Fling_-_2019202181140_2019-07-21_Champions_for_Charity_-_1772_-_B70I1807.jpg",
   "Miroslav Klose": "https://commons.wikimedia.org/wiki/Special:FilePath/Miroslav_Klose_Portrait.JPG",
