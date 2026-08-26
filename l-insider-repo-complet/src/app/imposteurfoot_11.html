@@ -424,6 +424,19 @@ const RotateCcw = makeIcon(
     <path d="M3.2 3.8v4.6h4.6" />
   </>
 );
+// Ajouté le 26 août 2026 pour le bouton "Partager avec tes potes" en fin de
+// partie (voir EndScreen.jsx + SHARE_URL dans game-engine.js) — recommandation
+// marketing : exploiter la viralité de groupe déjà intégrée au jeu (un
+// téléphone qui circule entre amis).
+const Share2 = makeIcon(
+  <>
+    <circle cx="18" cy="5" r="2.8" />
+    <circle cx="6" cy="12" r="2.8" />
+    <circle cx="18" cy="19" r="2.8" />
+    <path d="M8.4 10.6 15.6 6.4" />
+    <path d="M8.4 13.4 15.6 17.6" />
+  </>
+);
 const Minus = makeIcon(<path d="M5 12h14" />);
 const Plus = makeIcon(
   <>
