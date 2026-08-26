@@ -51,6 +51,18 @@ workflows:
           zip -r LInsider-unsigned.ipa Payload
     artifacts:
       - LInsider-unsigned.ipa
+    publishing:
+      # Meme raison que pour android-debug plus bas : le lien de telechargement
+      # de l'interface web Codemagic exige une session connectee (403 sinon).
+      # Ajoute le 26 aout 2026, apres avoir constate que ce workflow n'avait
+      # pas encore ce bloc (contrairement a android-debug) alors que le meme
+      # probleme s'applique au .ipa.
+      email:
+        recipients:
+          - loukainiesta@gmail.com
+        notify:
+          success: true
+          failure: false
 
   android-debug:
     # Linux (linux_x2/linux_x4) n'est disponible qu'avec facturation activee
