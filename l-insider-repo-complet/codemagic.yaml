@@ -34,3 +34,25 @@ workflows:
           zip -r LInsider-unsigned.ipa Payload
     artifacts:
       - LInsider-unsigned.ipa
+
+  android-debug:
+    name: L'Insider - Android build
+    instance_type: linux_x2
+    max_build_duration: 30
+    environment:
+      java: 17
+      node: latest
+    scripts:
+      - name: Install root dependencies
+        script: npm install
+      - name: Install build tooling dependencies (Babel/Terser)
+        script: cd build && npm install
+      - name: Build web app + sync into Android project
+        script: npm run cap:sync
+      - name: Build debug APK
+        script: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+    artifacts:
+      - android/app/build/outputs/apk/debug/*.apk
