@@ -1,3 +1,11 @@
+# NOTE : ce fichier est une copie miroir du VRAI codemagic.yaml, qui vit a
+# la racine du depot GitHub (au-dessus de ce dossier local, qui correspond a
+# "l-insider-repo-complet/" sur GitHub). Codemagic ne lit que le
+# codemagic.yaml a la racine reelle du repo -- c'est pour ca que les chemins
+# ci-dessous commencent par "l-insider-repo-complet/". Garde ce fichier en
+# local pour l'historique/diff, mais toute modification doit etre repoussee
+# manuellement sur GitHub a la racine (pas dans ce sous-dossier), via
+# https://github.com/louka948/l-insider/upload/main
 workflows:
   ios-unsigned:
     name: L'Insider - iOS unsigned build
@@ -49,11 +57,15 @@ workflows:
     # sur ce compte Codemagic (pas de minutes gratuites hors macOS) -> on
     # construit l'APK Android sur la meme machine Mac gratuite que l'iOS
     # (500 min/mois offertes), qui inclut aussi le SDK Android + Gradle.
+    # JDK 21 (pas 17) : capacitor.build.gradle genere par `cap sync` impose
+    # sourceCompatibility/targetCompatibility JavaVersion.VERSION_21 -- avec
+    # java:17 le build echoue avec "invalid source release: 21" (constate le
+    # 26 aout 2026, build #2).
     name: L'Insider - Android build
     instance_type: mac_mini_m2
     max_build_duration: 30
     environment:
-      java: 17
+      java: 21
       node: latest
     scripts:
       - name: Install dependencies and sync Android project
