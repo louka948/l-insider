@@ -12,20 +12,19 @@ function SetupScreen({ count, resizeNames, names, setNames, photos, setPhotos, n
   // seul vrai palier qui reste est "blocked" : une fois les 5 parties
   // gratuites épuisées, il faut passer premium (ou rentrer le code bêta)
   // pour continuer à jouer, quelle que soit l'option choisie.
-  // Règle demandée par l'utilisateur le 24 août 2026 : jusqu'à la moitié de
-  // l'effectif peut être infiltrée (ex. 5 joueurs → 2 infiltrés max, 6 → 3).
-  // Auparavant plafonné à un tiers de l'effectif (`count / 3`).
-  // Depuis le 25 août 2026, la carte blanche suit la même règle (elle était
-  // limitée à 0 ou 1 avant, sur retour utilisateur : "comme les infiltrés,
-  // c'est à l'utilisateur de décider de sa propre partie"). Les deux
-  // compteurs se partagent le même budget de joueurs : chacun est plafonné
-  // à la fois par sa propre moitié d'effectif ET par ce qu'il reste une fois
-  // l'autre compteur déduit, pour qu'il reste toujours au moins 1 civil
-  // (sans quoi personne ne porte le mot commun autour duquel tourne la
-  // partie). Voir aussi resizeNames dans imposteurfoot_11.html, qui applique
-  // le même plafond en cascade quand l'effectif change.
-  const maxUndercover = Math.max(1, Math.min(Math.floor(count / 2), count - numBlanc - 1));
-  const maxBlanc = Math.max(0, Math.min(Math.floor(count / 2), count - numUndercover - 1));
+  // Règle demandée par l'utilisateur le 26 août 2026 : plus aucun plafond
+  // arbitraire (ni moitié, ni tiers de l'effectif) — "c'est à l'utilisateur
+  // de décider de sa propre partie". Infiltrés et carte blanche partagent
+  // seulement une contrainte incompressible : il doit rester au moins 1
+  // civil (sans quoi personne ne porte le mot commun autour duquel tourne
+  // la partie). Chaque compteur est donc seulement plafonné par ce qu'il
+  // reste une fois l'autre compteur déduit. (Avant cette date, une règle du
+  // 24 août 2026 plafonnait en plus chaque compteur à la moitié de
+  // l'effectif — retirée ici sur retour explicite de l'utilisateur.) Voir
+  // aussi resizeNames dans imposteurfoot_11.html, qui applique la même
+  // logique en cascade quand l'effectif change.
+  const maxUndercover = Math.max(1, count - numBlanc - 1);
+  const maxBlanc = Math.max(0, count - numUndercover - 1);
   const noClubSelected = category === "CLUB" && !selectedClub;
   const noRoleSelected = numUndercover === 0 && numBlanc === 0;
   const disableStart = !blocked && (noRoleSelected || noClubSelected);
@@ -337,7 +336,7 @@ function SetupScreen({ count, resizeNames, names, setNames, photos, setPhotos, n
               // plus haut).
               const nextUndercover = numUndercover + 1;
               setNumUndercover(nextUndercover);
-              const nextMaxBlanc = Math.max(0, Math.min(Math.floor(count / 2), count - nextUndercover - 1));
+              const nextMaxBlanc = Math.max(0, count - nextUndercover - 1);
               if (numBlanc > nextMaxBlanc) setNumBlanc(nextMaxBlanc);
             }}
             disabled={numUndercover >= maxUndercover}
