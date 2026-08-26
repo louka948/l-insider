@@ -85,11 +85,11 @@ async function main() {
   console.log("2. Mode anonyme : accès complet aux options, compteur de parties gratuites informatif");
   // Un navigateur Playwright frais = un visiteur anonyme sans historique
   // localStorage (voir ANON_GAME_LIMIT dans imposteurfoot_11.html). Décision
-  // produit : pendant ces 5 parties gratuites, TOUTES les options restent
+  // produit : pendant ces 3 parties gratuites, TOUTES les options restent
   // débloquées (plus de palier "restricted" limitant au mode classique brut)
   // — seule la bannière est informative, rien n'est verrouillé tant que le
   // compteur n'est pas à zéro (voir section 5 plus bas pour ce palier-là).
-  ok((await page.locator("text=5 parties gratuites restantes").count()) > 0, "Bannière limite anonyme affichée (5 restantes)");
+  ok((await page.locator("text=3 parties gratuites restantes").count()) > 0, "Bannière limite anonyme affichée (3 restantes)");
 
   await page.locator('button:has-text("CATÉGORIE")').first().click();
   await page.waitForTimeout(200);
@@ -144,20 +144,20 @@ async function main() {
     }
   }
 
-  console.log("4. Palier bloqué une fois les 5 parties gratuites épuisées (sans premium)");
+  console.log("4. Palier bloqué une fois les 3 parties gratuites épuisées (sans premium)");
   // Nouveau contexte propre (pas celui qui vient de jouer une partie), pour
   // ne pas mélanger avec le compteur déjà incrémenté ci-dessus : on force
   // directement le compteur localStorage à la limite avant le premier
-  // rendu, ce qui simule un visiteur ayant déjà joué ses 5 parties.
+  // rendu, ce qui simule un visiteur ayant déjà joué ses 3 parties.
   const blockedContext = await browser.newContext({ viewport: { width: 480, height: 1000 } });
   const blockedPage = await blockedContext.newPage();
   blockedPage.on("pageerror", (e) => jsErrors.push(e.message));
   await blockedPage.addInitScript(() => {
-    window.localStorage.setItem("imposteurfoot_anon_games_played", "5");
+    window.localStorage.setItem("imposteurfoot_anon_games_played", "3");
   });
   await blockedPage.goto(`file://${SOURCE_FILE}`);
   await blockedPage.waitForTimeout(700);
-  ok((await blockedPage.locator("text=Parties gratuites épuisées").count()) > 0, "Bannière \"épuisées\" affichée après 5 parties");
+  ok((await blockedPage.locator("text=Parties gratuites épuisées").count()) > 0, "Bannière \"épuisées\" affichée après 3 parties");
   ok((await blockedPage.locator('button:has-text("Créer un compte pour continuer")').count()) > 0, "Bouton de lancement remplacé par l'invite compte/premium");
   await blockedContext.close();
 
