@@ -5,7 +5,7 @@
 // comprendre comment ce fichier se retrouve dans le jeu final.
 // ---------------------------------------------------------------------------
 
-function SetupScreen({ count, resizeNames, names, setNames, photos, setPhotos, numUndercover, setNumUndercover, mrBlanc, setMrBlanc, category, setCategory, selectedClub, setSelectedClub, era, setEra, mode, setMode, hardMode, setHardMode, timerEnabled, setTimerEnabled, timerDuration, setTimerDuration, onStart, blocked, anonRemaining, isPremium, hasAccount, onRequireAccount }) {
+function SetupScreen({ count, resizeNames, names, setNames, photos, setPhotos, numUndercover, setNumUndercover, numBlanc, setNumBlanc, category, setCategory, selectedClub, setSelectedClub, era, setEra, mode, setMode, hardMode, setHardMode, timerEnabled, setTimerEnabled, timerDuration, setTimerDuration, onStart, blocked, anonRemaining, isPremium, hasAccount, onRequireAccount }) {
   // Décision produit (revue une deuxième fois avec l'utilisateur) : pendant
   // les 5 parties gratuites, TOUTES les options sont débloquées — plus de
   // palier intermédiaire "restricted" limitant au mode classique brut. Le
@@ -15,9 +15,19 @@ function SetupScreen({ count, resizeNames, names, setNames, photos, setPhotos, n
   // Règle demandée par l'utilisateur le 24 août 2026 : jusqu'à la moitié de
   // l'effectif peut être infiltrée (ex. 5 joueurs → 2 infiltrés max, 6 → 3).
   // Auparavant plafonné à un tiers de l'effectif (`count / 3`).
-  const maxUndercover = Math.max(1, Math.floor(count / 2));
+  // Depuis le 25 août 2026, la carte blanche suit la même règle (elle était
+  // limitée à 0 ou 1 avant, sur retour utilisateur : "comme les infiltrés,
+  // c'est à l'utilisateur de décider de sa propre partie"). Les deux
+  // compteurs se partagent le même budget de joueurs : chacun est plafonné
+  // à la fois par sa propre moitié d'effectif ET par ce qu'il reste une fois
+  // l'autre compteur déduit, pour qu'il reste toujours au moins 1 civil
+  // (sans quoi personne ne porte le mot commun autour duquel tourne la
+  // partie). Voir aussi resizeNames dans imposteurfoot_11.html, qui applique
+  // le même plafond en cascade quand l'effectif change.
+  const maxUndercover = Math.max(1, Math.min(Math.floor(count / 2), count - numBlanc - 1));
+  const maxBlanc = Math.max(0, Math.min(Math.floor(count / 2), count - numUndercover - 1));
   const noClubSelected = category === "CLUB" && !selectedClub;
-  const noRoleSelected = numUndercover === 0 && !mrBlanc;
+  const noRoleSelected = numUndercover === 0 && numBlanc === 0;
   const disableStart = !blocked && (noRoleSelected || noClubSelected);
   const [activeIndex, setActiveIndex] = useState(null);
   const fileInputRef = useRef(null);
@@ -317,25 +327,48 @@ function SetupScreen({ count, resizeNames, names, setNames, photos, setPhotos, n
             <Minus size={16} />
           </StepperBtn>
           <div style={styles.stepperValue}>{numUndercover}</div>
-          <StepperBtn onClick={() => numUndercover < maxUndercover && setNumUndercover(numUndercover + 1)} disabled={numUndercover >= maxUndercover}>
+          <StepperBtn
+            onClick={() => {
+              if (numUndercover >= maxUndercover) return;
+              // On ne fait avancer que ce compteur ; si la carte blanche
+              // occupait la place qu'on vient de prendre dans le budget
+              // partagé, on la réduit d'autant pour ne jamais tomber à
+              // 0 civil (voir le commentaire sur maxUndercover/maxBlanc
+              // plus haut).
+              const nextUndercover = numUndercover + 1;
+              setNumUndercover(nextUndercover);
+              const nextMaxBlanc = Math.max(0, Math.min(Math.floor(count / 2), count - nextUndercover - 1));
+              if (numBlanc > nextMaxBlanc) setNumBlanc(nextMaxBlanc);
+            }}
+            disabled={numUndercover >= maxUndercover}
+          >
             <Plus size={16} />
           </StepperBtn>
         </div>
 
-        <button
-          onClick={() => setMrBlanc(!mrBlanc)}
-          style={{ ...styles.toggleRow, borderColor: mrBlanc ? COLORS.gold : "rgba(255,255,255,0.15)", marginBottom: 0 }}
-        >
-          <div>
-            <div style={styles.toggleTitle}>Carte blanche</div>
-            <div style={styles.toggleSub}>Un joueur sans carte du tout, qui doit bluffer à l'aveugle</div>
+        <div style={{ marginTop: 4 }}>
+          <div style={styles.toggleTitle}>Carte blanche</div>
+          <div style={{ ...styles.toggleSub, marginBottom: 10 }}>
+            Un ou plusieurs joueurs sans carte du tout, qui doivent bluffer à l'aveugle
           </div>
-          <div style={{ ...styles.toggleTrack, background: mrBlanc ? COLORS.gold : "rgba(255,255,255,0.18)", justifyContent: mrBlanc ? "flex-end" : "flex-start" }}>
-            <div style={styles.toggleKnob} />
+          <div style={{ ...styles.stepperRow, marginBottom: 0 }}>
+            <StepperBtn onClick={() => numBlanc > 0 && setNumBlanc(numBlanc - 1)} disabled={numBlanc <= 0}>
+              <Minus size={16} />
+            </StepperBtn>
+            <div style={styles.stepperValue}>{numBlanc}</div>
+            <StepperBtn
+              onClick={() => {
+                if (numBlanc >= maxBlanc) return;
+                setNumBlanc(numBlanc + 1);
+              }}
+              disabled={numBlanc >= maxBlanc}
+            >
+              <Plus size={16} />
+            </StepperBtn>
           </div>
-        </button>
+        </div>
 
-        {noRoleSelected && <p style={{ ...styles.warnText, marginTop: 10, marginBottom: 0 }}>Choisis au moins 1 infiltré ou active la Carte blanche.</p>}
+        {noRoleSelected && <p style={{ ...styles.warnText, marginTop: 10, marginBottom: 0 }}>Choisis au moins 1 infiltré ou 1 carte blanche.</p>}
       </div>
 
       <button style={{ ...styles.primaryBtn, opacity: disableStart ? 0.4 : 1 }} disabled={disableStart} onClick={onStart}>
