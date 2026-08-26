@@ -183,6 +183,16 @@ const GAME_MODES = [
 // complètement le bloc tant qu'aucun formulaire n'est configuré.
 const NEWSLETTER_URL = "";
 
+// URL partagée par le bouton "Partager avec tes potes" en fin de partie (voir
+// EndScreen.jsx). Contrairement à NEWSLETTER_URL, celle-ci est déjà
+// renseignée par défaut : le jeu est jouable directement depuis cette page
+// (single-file HTML), donc c'est un lien de partage prêt à l'emploi, sans
+// dépendre d'une publication sur les stores. Recommandation marketing du
+// 26 août 2026 : exploiter la viralité de groupe déjà intégrée au jeu (un
+// seul téléphone qui circule entre amis pendant une soirée) plutôt que
+// d'attendre la publication store pour avoir un mécanisme de partage.
+const SHARE_URL = "https://imposteur-foot.netlify.app";
+
 // Durées proposées pour le chrono de discussion (en secondes).
 const TIMER_OPTIONS = [
   { id: 60, label: "1 min" },
