@@ -7,11 +7,12 @@
 
 function SetupScreen({ count, resizeNames, names, setNames, photos, setPhotos, numUndercover, setNumUndercover, numBlanc, setNumBlanc, category, setCategory, selectedClub, setSelectedClub, era, setEra, mode, setMode, hardMode, setHardMode, timerEnabled, setTimerEnabled, timerDuration, setTimerDuration, onStart, blocked, anonRemaining, isPremium, hasAccount, onRequireAccount }) {
   // Décision produit (revue une deuxième fois avec l'utilisateur) : pendant
-  // les 5 parties gratuites, TOUTES les options sont débloquées — plus de
-  // palier intermédiaire "restricted" limitant au mode classique brut. Le
-  // seul vrai palier qui reste est "blocked" : une fois les 5 parties
-  // gratuites épuisées, il faut passer premium (ou rentrer le code bêta)
-  // pour continuer à jouer, quelle que soit l'option choisie.
+  // les parties gratuites (ANON_GAME_LIMIT, 3 depuis le 26 août 2026),
+  // TOUTES les options sont débloquées — plus de palier intermédiaire
+  // "restricted" limitant au mode classique brut. Le seul vrai palier qui
+  // reste est "blocked" : une fois les parties gratuites épuisées, il faut
+  // passer premium (ou rentrer le code bêta) pour continuer à jouer, quelle
+  // que soit l'option choisie.
   // Règle demandée par l'utilisateur le 26 août 2026 : plus aucun plafond
   // arbitraire (ni moitié, ni tiers de l'effectif) — "c'est à l'utilisateur
   // de décider de sa propre partie". Infiltrés et carte blanche partagent
