@@ -343,7 +343,7 @@ const { useState, useRef, useEffect } = React;
 
 // Limite du mode anonyme (sans compte) — voir ImposteurFoot() pour le détail
 // du raisonnement. Clé localStorage préfixée pour éviter toute collision.
-const ANON_GAME_LIMIT = 5;
+const ANON_GAME_LIMIT = 3;
 const ANON_GAMES_KEY = "imposteurfoot_anon_games_played";
 const MUSIC_VOLUME_KEY = "imposteurfoot_music_volume";
 
@@ -925,15 +925,14 @@ function ImposteurFoot() {
   // monde faute de paiement possible.
   const isPremium = betaAccess || (!STRIPE_CONFIGURED ? hasAccount : hasLifetimeAccess || hasActiveSubscription);
 
-  // Limite anonyme : 5 parties à vie en mode "Undercover classique" brut
-  // uniquement (pas de choix de catégorie/championnat/génération, pas de
-  // choix de mode de jeu, pas de chrono) — voir doc projet
+  // Limite anonyme : ANON_GAME_LIMIT parties à vie (3 depuis le 26 août
+  // 2026, abaissé depuis 5 à la demande de l'utilisateur) — voir doc projet
   // modele-economique-comptes-premium.md pour le raisonnement complet.
-  // Suivi en local (localStorage), jamais en base : jouer 5 parties ne
-  // nécessite aucun compte. Seul le premium (abonnement ou accès à vie,
-  // voir isPremium ci-dessus) débloque tout, illimité — un compte gratuit
-  // sans achat reste soumis à cette même limite, décision validée avec
-  // l'utilisateur une fois Stripe opérationnel.
+  // Suivi en local (localStorage), jamais en base : jouer ces parties
+  // gratuites ne nécessite aucun compte. Seul le premium (abonnement ou
+  // accès à vie, voir isPremium ci-dessus) débloque tout, illimité — un
+  // compte gratuit sans achat reste soumis à cette même limite, décision
+  // validée avec l'utilisateur une fois Stripe opérationnel.
   const [anonGamesPlayed, setAnonGamesPlayed] = useState(() => {
     try {
       return parseInt(window.localStorage.getItem(ANON_GAMES_KEY), 10) || 0;
@@ -942,16 +941,16 @@ function ImposteurFoot() {
     }
   });
   const anonRemaining = Math.max(0, ANON_GAME_LIMIT - anonGamesPlayed);
-  // "blocked" : a épuisé ses 5 parties gratuites, doit passer premium (ou
+  // "blocked" : a épuisé ses parties gratuites, doit passer premium (ou
   // rentrer le code bêta) pour continuer. Décision produit (revue une
-  // deuxième fois avec l'utilisateur) : pendant ces 5 parties gratuites,
+  // deuxième fois avec l'utilisateur) : pendant ces parties gratuites,
   // TOUTES les options sont débloquées (catégorie/championnat/génération/
   // mode/chrono) — l'ancien palier intermédiaire "restricted" (parties
   // gratuites limitées au mode classique brut) a été retiré, pour que
   // l'essai gratuit donne une vraie expérience complète du jeu plutôt
   // qu'une version tronquée. Un compte gratuit (sans abonnement ni accès à
   // vie) suit les mêmes règles qu'un visiteur anonyme — seul isPremium lève
-  // cette limite de 5 parties, pas le simple fait d'avoir un compte.
+  // cette limite (ANON_GAME_LIMIT), pas le simple fait d'avoir un compte.
   const blocked = !isPremium && anonRemaining <= 0;
 
   // Musique de fond : un vrai morceau plutôt que l'ambiance générée en
