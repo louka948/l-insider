@@ -4,10 +4,18 @@
 "L'Insider". Les identifiants techniques internes qui datent de l'ancien nom
 n'ont volontairement pas été touchés : nom de fichier
 `src/app/imposteurfoot_11.html`, fonction orchestratrice `ImposteurFoot()`,
-appId Capacitor `com.imposteurfoot.app`, URL Netlify
-`imposteur-foot.netlify.app`, nom du dossier/dépôt. Un renommage plus
-profond de ces identifiants pourra être fait plus tard si besoin — voir
+appId Capacitor `com.imposteurfoot.app`, nom du dossier/dépôt. Un renommage
+plus profond de ces identifiants pourra être fait plus tard si besoin — voir
 `claude/etat-imposteur-foot.md` pour le contexte de cette décision.)*
+
+*(URL Netlify : `astonishing-gaufre-e894c1.netlify.app` depuis le 27 août
+2026 — l'ancienne équipe Netlify liée à `imposteur-foot.netlify.app` a
+épuisé son crédit opérationnel et bloque les nouveaux déploiements ; ce
+n'est pas un renommage volontaire mais une migration forcée vers un nouveau
+compte. Le site `imposteur-foot.netlify.app` reste live mais figé
+(dernière version déployée avant le blocage). `SHARE_URL` dans
+`src/engine/game-engine.js` et le lien de politique de confidentialité
+dans `src/screens/RulesScreen.jsx` pointent vers la nouvelle URL.)*
 
 Ce fichier existe pour qu'une nouvelle session Claude Code (ou n'importe quel
 contributeur) comprenne en 2 minutes comment le projet est organisé, sans
