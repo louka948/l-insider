@@ -312,6 +312,52 @@ const RAW_PLAYERS = [
 // apparié à Ribéry ou Cavani). Volontairement très court et curaté à la
 // main (demande explicite utilisateur) : l'ajout d'un nom ici doit rester
 // exceptionnel, pas une extension progressive de la catégorie "légende".
+// Année(s) réelle(s) de sacre Ballon d'Or pour chaque joueur marqué b=1
+// ci-dessus. Ajouté car le filtre par époque (ERA_OPTIONS dans
+// game-engine.js) se basait uniquement sur les décennies d'ACTIVITÉ (champ
+// `e`) : un joueur encore en activité pendant une décennie donnée pouvait
+// donc apparaître dans la catégorie "Ballon d'Or" filtrée sur cette
+// décennie alors qu'il avait gagné le trophée bien avant (ex. Zidane
+// 1998 et Weah 1995 remontaient dans le filtre "2000-2020" simplement
+// parce que leur carrière débordait sur les années 2000 — signalé par un
+// utilisateur). game-engine.js utilise ce tableau (au lieu des décennies
+// de carrière) pour filtrer la catégorie "Ballon d'Or" par époque.
+const BALLON_DOR_YEARS = {
+  "Alfredo Di Stéfano": [1957, 1959],
+  "Gerd Müller": [1970],
+  "Eusébio": [1965],
+  "George Best": [1968],
+  "Bobby Charlton": [1966],
+  "Franz Beckenbauer": [1972, 1976],
+  "Johan Cruyff": [1971, 1973, 1974],
+  "Michel Platini": [1983, 1984, 1985],
+  "Ruud Gullit": [1987],
+  "Marco van Basten": [1988, 1989, 1992],
+  "Jean-Pierre Papin": [1991],
+  "Roberto Baggio": [1993],
+  "Hristo Stoichkov": [1994],
+  "George Weah": [1995],
+  "Ronaldo Nazário": [1997, 2002],
+  "Zinédine Zidane": [1998],
+  "Rivaldo": [1999],
+  "Luís Figo": [2000],
+  "Michael Owen": [2001],
+  "Ronaldinho": [2005],
+  "Fabio Cannavaro": [2006],
+  "Kaká": [2007],
+  "Cristiano Ronaldo": [2008, 2013, 2014, 2016, 2017],
+  "Lionel Messi": [2009, 2010, 2011, 2012, 2015, 2019, 2021, 2023],
+  "Luka Modrić": [2018],
+  "Karim Benzema": [2022],
+  "Rodri": [2024],
+  // Romário a gagné le FIFA World Player of the Year 1994, pas le Ballon
+  // d'Or France Football (réservé aux joueurs européens jusqu'en 1995) :
+  // b=1 sur son entrée est donc discutable, mais laissé tel quel (pas la
+  // question posée) — pas d'année à renseigner ici, donc `bo` restera vide
+  // pour lui et il ne remontera plus jamais dans un filtre "Ballon d'Or" +
+  // époque précise, seulement en "Toutes époques".
+};
+
 const GOAT_TIER = new Set([
   "Lionel Messi",
   "Cristiano Ronaldo",
@@ -358,12 +404,12 @@ const RAW_PURE_COACHES = [
 ];
 
 const PLAYERS = RAW_PLAYERS
-  .map(([n, p, sp, e, c, b, l, cl]) => ({ n, p, sp, e, c, b: !!b, l: !!l, g: GOAT_TIER.has(n), co: COACH_NAMES.has(n), cl }))
+  .map(([n, p, sp, e, c, b, l, cl]) => ({ n, p, sp, e, c, b: !!b, l: !!l, g: GOAT_TIER.has(n), co: COACH_NAMES.has(n), cl, bo: BALLON_DOR_YEARS[n] || null }))
   // sp: "COACH" pour les purs entraîneurs (jamais un vrai profil de terrain à
   // rapprocher) — toujours une valeur définie, jamais undefined, pour que
   // scorePair() ne fasse jamais correspondre deux joueurs par erreur sur un
   // sp manquant des deux côtés (undefined === undefined serait vrai en JS).
-  .concat(RAW_PURE_COACHES.map(([n, e, c, l, cl]) => ({ n, p: "COACH", sp: "COACH", e, c, b: false, l: !!l, g: GOAT_TIER.has(n), co: true, cl })));
+  .concat(RAW_PURE_COACHES.map(([n, e, c, l, cl]) => ({ n, p: "COACH", sp: "COACH", e, c, b: false, l: !!l, g: GOAT_TIER.has(n), co: true, cl, bo: null })));
 
 // Liste volontairement curatée (pas tous les clubs présents dans les
 // données) : seuls les clubs qui comptent au moins deux légendes connues du
