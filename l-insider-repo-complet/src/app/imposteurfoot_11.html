@@ -346,6 +346,11 @@ const { useState, useRef, useEffect } = React;
 const ANON_GAME_LIMIT = 3;
 const ANON_GAMES_KEY = "imposteurfoot_anon_games_played";
 const MUSIC_VOLUME_KEY = "imposteurfoot_music_volume";
+// Offre visée (?plan=) mémorisée le temps de créer un compte — voir la
+// déclaration de intendedPlan plus bas pour le raisonnement complet
+// (notamment pourquoi ça doit survivre à un aller-retour de confirmation
+// d'email, donc pourquoi un simple useState ne suffit pas).
+const INTENDED_PLAN_KEY = "imposteurfoot_intended_plan";
 
 // ---------------------------------------------------------------------------
 // Icônes — traits SVG simples (aucune dépendance externe), pas des emoji.
@@ -850,21 +855,57 @@ function ImposteurFoot() {
   // le jeu. On nettoie le paramètre tout de suite (même logique que
   // ?paiement= dans AccountScreen.jsx) pour qu'un simple rafraîchissement
   // ne rouvre pas l'écran à chaque fois.
-  const [showAccount, setShowAccount] = useState(() => {
-    if (typeof window === "undefined") return false;
-    const params = new URLSearchParams(window.location.search);
-    return params.get("compte") === "1";
-  });
   // Offre visée quand on arrive depuis une carte de prix de la landing page
   // (?plan=subscription ou ?plan=lifetime, ajouté au même lien que
-  // ?compte=1) — sert uniquement à afficher un message clair dans
-  // AccountScreen du style "crée un compte pour débloquer [offre]", pour
-  // que ce ne soit pas juste un formulaire d'inscription sans contexte.
+  // ?compte=1). Sert à afficher un message clair dans AccountScreen
+  // ("crée un compte pour débloquer [offre]") ET à déclencher
+  // automatiquement le paiement Stripe une fois le compte prêt (voir
+  // l'effet dans AccountScreen.jsx) — sans ça, créer un compte ramenait
+  // silencieusement sur l'écran "Mon compte" sans jamais lancer le
+  // paiement, ce qui n'avait aucun sens pour quelqu'un venu payer.
+  //
+  // Persisté en localStorage (pas juste en state) car Supabase peut exiger
+  // une confirmation d'email : dans ce cas, le lien envoyé par email
+  // ramène sur une URL fraîche SANS ?plan= (emailRedirectTo pointe juste
+  // vers l'origine, voir handleSignUp dans AccountScreen.jsx) — un simple
+  // useState perdrait l'info à ce moment précis, alors que c'est justement
+  // le moment où le paiement doit se déclencher. Nettoyé (localStorage
+  // ET state) une fois consommé ou si l'utilisateur ferme l'écran sans
+  // aller au bout.
   const [intendedPlan, setIntendedPlan] = useState(() => {
     if (typeof window === "undefined") return null;
     const params = new URLSearchParams(window.location.search);
-    const plan = params.get("plan");
-    return plan === "subscription" || plan === "lifetime" ? plan : null;
+    const fromUrl = params.get("plan");
+    if (fromUrl === "subscription" || fromUrl === "lifetime") {
+      try {
+        window.localStorage.setItem(INTENDED_PLAN_KEY, fromUrl);
+      } catch (e) {}
+      return fromUrl;
+    }
+    try {
+      const stored = window.localStorage.getItem(INTENDED_PLAN_KEY);
+      return stored === "subscription" || stored === "lifetime" ? stored : null;
+    } catch (e) {
+      return null;
+    }
+  });
+  const clearIntendedPlan = () => {
+    setIntendedPlan(null);
+    try {
+      window.localStorage.removeItem(INTENDED_PLAN_KEY);
+    } catch (e) {}
+  };
+  // Ouverture directe sur "Mon compte" via ?compte=1 dans l'URL, ou si une
+  // offre visée est encore en attente en localStorage (retour d'un lien de
+  // confirmation d'email — voir intendedPlan ci-dessus) : dans ce second
+  // cas il n'y a plus de ?compte=1 dans l'URL, donc s'appuyer uniquement
+  // dessus laisserait l'utilisateur revenir sur l'écran de configuration
+  // sans jamais voir le paiement se déclencher.
+  const [showAccount, setShowAccount] = useState(() => {
+    if (typeof window === "undefined") return false;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("compte") === "1") return true;
+    return !!intendedPlan;
   });
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -1372,13 +1413,14 @@ function ImposteurFoot() {
             session={session}
             onClose={() => {
               setShowAccount(false);
-              setIntendedPlan(null);
+              clearIntendedPlan();
             }}
             betaAccess={betaAccess}
             onActivateBetaAccess={activateBetaAccess}
             passwordRecovery={passwordRecovery}
             onPasswordRecoveryHandled={() => setPasswordRecovery(false)}
             intendedPlan={intendedPlan}
+            onIntendedPlanConsumed={clearIntendedPlan}
           />
         )}
 
