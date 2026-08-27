@@ -83,6 +83,22 @@ create table public.purchases (
 
 alter table public.purchases enable row level security;
 
+-- Idempotence webhook Stripe (audit-securite-imposteur-foot.md, section 23,
+-- 🟡 MOYEN) : Stripe peut renvoyer le même événement checkout.session.completed
+-- plusieurs fois (retry réseau si notre réponse tarde ou échoue) — sans ces
+-- contraintes, la fonction stripe-webhook insérerait une deuxième ligne pour
+-- le même achat à chaque renvoi. Une contrainte unique sur une colonne
+-- nullable autorise plusieurs NULL (comportement standard Postgres : NULL
+-- n'est jamais égal à NULL), donc ça ne gêne pas les lignes où l'une des deux
+-- colonnes n'est pas renseignée (ex. subscription_id vide pour un achat à
+-- vie). Pour appliquer ça à un projet déjà existant (tables déjà créées, pas
+-- question de relancer ce fichier depuis zéro), voir
+-- docs/migration-idempotence-webhook.sql à la place.
+alter table public.purchases
+  add constraint purchases_stripe_subscription_id_key unique (stripe_subscription_id);
+alter table public.purchases
+  add constraint purchases_stripe_payment_intent_id_key unique (stripe_payment_intent_id);
+
 create policy "Un utilisateur peut lire ses propres achats"
   on public.purchases for select
   using (auth.uid() = user_id);
