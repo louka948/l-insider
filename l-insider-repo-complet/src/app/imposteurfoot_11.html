@@ -1076,7 +1076,11 @@ function ImposteurFoot() {
 
     let pool = playersForCategory(category, selectedClub);
     const eraObj = ERA_OPTIONS.find((e) => e.id === era) || ERA_OPTIONS[0];
-    pool = pool.filter((p) => playerInEra(p, eraObj));
+    // Catégorie "Ballon d'Or" : filtrer sur l'année réelle du sacre
+    // (playerBOInEra) plutôt que sur les décennies de carrière
+    // (playerInEra) — sinon un joueur sacré avant la tranche d'époque
+    // choisie mais encore actif pendant celle-ci y réapparaît à tort.
+    pool = pool.filter((p) => (category === "BO" ? playerBOInEra(p, eraObj) : playerInEra(p, eraObj)));
     if (pool.length < 2) pool = PLAYERS.filter((p) => playerInEra(p, eraObj));
     if (pool.length < 2) pool = PLAYERS;
 
