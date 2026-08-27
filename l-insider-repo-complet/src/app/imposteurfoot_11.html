@@ -855,11 +855,23 @@ function ImposteurFoot() {
     const params = new URLSearchParams(window.location.search);
     return params.get("compte") === "1";
   });
+  // Offre visée quand on arrive depuis une carte de prix de la landing page
+  // (?plan=subscription ou ?plan=lifetime, ajouté au même lien que
+  // ?compte=1) — sert uniquement à afficher un message clair dans
+  // AccountScreen du style "crée un compte pour débloquer [offre]", pour
+  // que ce ne soit pas juste un formulaire d'inscription sans contexte.
+  const [intendedPlan, setIntendedPlan] = useState(() => {
+    if (typeof window === "undefined") return null;
+    const params = new URLSearchParams(window.location.search);
+    const plan = params.get("plan");
+    return plan === "subscription" || plan === "lifetime" ? plan : null;
+  });
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
-    if (params.has("compte")) {
+    if (params.has("compte") || params.has("plan")) {
       params.delete("compte");
+      params.delete("plan");
       const rest = params.toString();
       window.history.replaceState({}, "", window.location.pathname + (rest ? `?${rest}` : ""));
     }
@@ -1358,11 +1370,15 @@ function ImposteurFoot() {
         {showAccount && (
           <AccountScreen
             session={session}
-            onClose={() => setShowAccount(false)}
+            onClose={() => {
+              setShowAccount(false);
+              setIntendedPlan(null);
+            }}
             betaAccess={betaAccess}
             onActivateBetaAccess={activateBetaAccess}
             passwordRecovery={passwordRecovery}
             onPasswordRecoveryHandled={() => setPasswordRecovery(false)}
+            intendedPlan={intendedPlan}
           />
         )}
 
