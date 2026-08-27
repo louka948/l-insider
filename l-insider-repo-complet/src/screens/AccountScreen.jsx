@@ -22,7 +22,8 @@ function AccountScreen({
   onActivateBetaAccess,
   passwordRecovery,
   onPasswordRecoveryHandled,
-  intendedPlan, // 'subscription' | 'lifetime' | null — voir imposteurfoot_11.html (?plan= dans l'URL, déclenché depuis les cartes de prix de la landing page). Sert à afficher un rappel clair de l'offre visée tant qu'on n'est pas connecté, plutôt que de laisser un simple formulaire de compte sans contexte.
+  intendedPlan, // 'subscription' | 'lifetime' | null — voir imposteurfoot_11.html (?plan= dans l'URL, déclenché depuis les cartes de prix de la landing page). Sert à afficher un rappel clair de l'offre visée tant qu'on n'est pas connecté, ET à déclencher automatiquement le paiement Stripe une fois le compte prêt (voir l'effet plus bas).
+  onIntendedPlanConsumed, // Callback pour oublier intendedPlan (state + localStorage, côté imposteurfoot_11.html) une fois qu'il n'a plus lieu d'être : paiement lancé, offre déjà débloquée, ou écran fermé manuellement.
 }) {
   // Si on arrive avec une offre déjà en tête, autant ouvrir directement sur
   // "Créer un compte" plutôt que sur "Se connecter" — c'est le cas le plus
@@ -202,6 +203,31 @@ function AccountScreen({
       setCheckoutError("Impossible de démarrer le paiement, réessaie dans un instant.");
     }
   }
+
+  // Déclenche automatiquement le paiement dès qu'un compte est prêt pour
+  // l'offre visée (intendedPlan, voir imposteurfoot_11.html) — sinon créer
+  // un compte depuis une carte de prix ramenait juste sur l'écran "Mon
+  // compte" sans jamais lancer Stripe, ce qui n'a aucun sens pour
+  // quelqu'un venu payer. Attend que purchases soit chargé (pas juste
+  // `user`) pour ne pas relancer un paiement si la personne a en fait déjà
+  // l'offre (ex. reconnexion sur un compte existant déjà abonné). Le ref
+  // empêche un second déclenchement si l'effet se rejoue (ex. purchases
+  // qui se recharge) — un seul essai automatique, ensuite les boutons
+  // manuels plus bas prennent le relais.
+  const autoCheckoutTriggered = useRef(false);
+  useEffect(() => {
+    if (!intendedPlan || !user || !STRIPE_CONFIGURED || purchases === null) return;
+    if (betaAccess || hasLifetime || (intendedPlan === "subscription" && activeSub)) {
+      // Offre déjà débloquée d'une façon ou d'une autre (bêta, achat
+      // existant...) — rien à payer, juste oublier l'offre visée.
+      onIntendedPlanConsumed && onIntendedPlanConsumed();
+      return;
+    }
+    if (autoCheckoutTriggered.current) return;
+    autoCheckoutTriggered.current = true;
+    handleSubscribe(intendedPlan);
+    onIntendedPlanConsumed && onIntendedPlanConsumed();
+  }, [intendedPlan, user, betaAccess, purchases, hasLifetime, activeSub]);
 
   function switchTab(next) {
     setTab(next);
