@@ -41,6 +41,20 @@ function playerInEra(p, era) {
   return p.e.some((decade) => decade >= era.from && decade < era.to);
 }
 
+// Filtre par époque spécifique à la catégorie "Ballon d'Or" : contrairement
+// à playerInEra() (basé sur les décennies d'ACTIVITÉ, champ `e`), celui-ci
+// se base sur l'année réelle du sacre (champ `bo`, voir BALLON_DOR_YEARS
+// dans data/players.js). Sans ça, un joueur encore en activité pendant une
+// décennie donnée remontait dans le filtre "Ballon d'Or" de cette décennie
+// même s'il avait gagné le trophée bien avant (ex. Zidane 1998 et Weah
+// 1995 remontaient dans "2000-2020" juste parce que leur carrière
+// débordait sur les années 2000).
+function playerBOInEra(p, era) {
+  if (era.id === "ALL") return true;
+  if (!p.bo) return false;
+  return p.bo.some((year) => year >= era.from && year < era.to);
+}
+
 function playersForCategory(cat, club) {
   if (cat === "GK" || cat === "DEF" || cat === "MID" || cat === "ATT") return PLAYERS.filter((p) => p.p === cat);
   if (cat === "BO") return PLAYERS.filter((p) => p.b);
