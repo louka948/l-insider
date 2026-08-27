@@ -8,14 +8,21 @@ appId Capacitor `com.imposteurfoot.app`, nom du dossier/dépôt. Un renommage
 plus profond de ces identifiants pourra être fait plus tard si besoin — voir
 `claude/etat-imposteur-foot.md` pour le contexte de cette décision.)*
 
-*(URL Netlify : `astonishing-gaufre-e894c1.netlify.app` depuis le 27 août
-2026 — l'ancienne équipe Netlify liée à `imposteur-foot.netlify.app` a
-épuisé son crédit opérationnel et bloque les nouveaux déploiements ; ce
-n'est pas un renommage volontaire mais une migration forcée vers un nouveau
-compte. Le site `imposteur-foot.netlify.app` reste live mais figé
+*(URL Netlify : `linsider.netlify.app` depuis le 27 août 2026. Historique :
+le site est d'abord passé par `astonishing-gaufre-e894c1.netlify.app`
+— l'ancienne équipe Netlify liée à `imposteur-foot.netlify.app` avait
+épuisé son crédit opérationnel et bloquait les nouveaux déploiements, migration
+forcée vers un nouveau compte — puis ce nouveau site a été renommé
+`linsider` le jour même. **Attention** : contrairement au premier
+changement, l'ancien nom `astonishing-gaufre-e894c1.netlify.app` ne reste
+PAS live après un renommage Netlify — il renvoie "Site not found"
+immédiatement (constaté empiriquement). Le site `imposteur-foot.netlify.app`
+(la toute première URL, équipe différente) reste lui live mais figé
 (dernière version déployée avant le blocage). `SHARE_URL` dans
 `src/engine/game-engine.js` et le lien de politique de confidentialité
-dans `src/screens/RulesScreen.jsx` pointent vers la nouvelle URL.)*
+dans `src/screens/RulesScreen.jsx` pointent vers `linsider.netlify.app`.
+Si l'URL change encore, vérifier ces deux fichiers ET les Redirect URLs
+Supabase (Authentication → URL Configuration), pas fixable par le code.)*
 
 Ce fichier existe pour qu'une nouvelle session Claude Code (ou n'importe quel
 contributeur) comprenne en 2 minutes comment le projet est organisé, sans
