@@ -43,3 +43,11 @@ dist/
 # pas encore de décision sur son dépôt/déploiement définitif. Jamais à
 # versionner tel quel ici tant que ça reste un brouillon.
 landing/
+
+# Paquet de déploiement combiné (landing/ à la racine + jeu buildé dans
+# jouer/) assemblé en session le 27 août 2026 pour que l'utilisateur puisse
+# glisser-déposer un seul dossier sur Netlify et garder landing + jeu sur le
+# même site. Recréable à volonté depuis landing/ + npm run build — jamais à
+# versionner tel quel.
+deploy-site/
+deploy-site.zip
