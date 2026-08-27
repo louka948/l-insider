@@ -205,7 +205,7 @@ const NEWSLETTER_URL = "";
 // 26 août 2026 : exploiter la viralité de groupe déjà intégrée au jeu (un
 // seul téléphone qui circule entre amis pendant une soirée) plutôt que
 // d'attendre la publication store pour avoir un mécanisme de partage.
-const SHARE_URL = "https://astonishing-gaufre-e894c1.netlify.app";
+const SHARE_URL = "https://linsider.netlify.app";
 
 // Durées proposées pour le chrono de discussion (en secondes).
 const TIMER_OPTIONS = [
