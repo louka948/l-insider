@@ -87,7 +87,7 @@ function RulesScreen({ onClose }) {
               par Capacitor dans le navigateur système, donc fonctionne à la fois en
               PWA web et en app native. */}
           <p style={{ ...styles.rulesText, opacity: 0.85, fontSize: 12.5, marginTop: 8 }}>
-            <a href="https://imposteur-foot.netlify.app/politique-confidentialite.html" target="_blank" rel="noopener" style={{ color: COLORS.gold, fontWeight: 700 }}>
+            <a href="https://astonishing-gaufre-e894c1.netlify.app/politique-confidentialite.html" target="_blank" rel="noopener" style={{ color: COLORS.gold, fontWeight: 700 }}>
               Politique de confidentialité
             </a>
           </p>
