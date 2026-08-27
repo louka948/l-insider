@@ -91,8 +91,31 @@ workflows:
           npm run build
           mkdir -p www
           cp index.html www/index.html
-          if [ ! -d android ]; then npx cap add android; fi
+          # IMPORTANT (decouvert le 27 aout 2026, build #7) : le dossier
+          # android/ n'est en realite PAS versionne sur GitHub (seulement en
+          # local dans les sessions Claude precedentes) -- seul un sous-arbre
+          # partiel (android/app/src/main/res/mipmap-*, ajoute pour l'icone)
+          # existe sur le repo distant. L'ancien test `[ ! -d android ]`
+          # devenait donc faux a cause de ce sous-arbre partiel, sautait
+          # `cap add android`, et le build echouait sur "gradlew: No such
+          # file or directory". On teste maintenant la presence de gradlew
+          # lui-meme (marqueur d'un vrai projet Capacitor complet) et on
+          # repart d'un dossier propre si besoin.
+          if [ ! -f android/gradlew ]; then rm -rf android && npx cap add android; fi
           npx cap sync android
+      - name: Apply custom app icon
+        script: |
+          set -e
+          cd l-insider-repo-complet
+          # Reutilise l'icone iOS deja versionnee (ballon masque) comme
+          # source pour generer l'icone Android -- evite de dupliquer les
+          # assets et garantit que les deux plateformes restent identiques.
+          # Ajoute le 27 aout 2026 : android/ n'etant pas versionne (voir
+          # note ci-dessus), l'icone par defaut de Capacitor revenait a
+          # chaque build tant que cette etape n'existait pas.
+          mkdir -p resources
+          cp "ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png" resources/icon.png
+          npx --yes @capacitor/assets generate --android --iconBackgroundColor '#0D2B1F' --iconBackgroundColorDark '#0D2B1F'
       - name: Build debug APK
         script: |
           set -e
