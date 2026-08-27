@@ -843,7 +843,27 @@ function ImposteurFoot() {
   // chaque connexion/inscription/déconnexion, où qu'elle ait lieu dans
   // l'app (pas besoin que AccountScreen mette à jour ce state lui-même).
   const [session, setSession] = useState(undefined);
-  const [showAccount, setShowAccount] = useState(false);
+  // Ouverture directe sur "Mon compte" via ?compte=1 dans l'URL — utilisé
+  // par les cartes de prix de la landing page (section pricing) pour amener
+  // quelqu'un de prêt à payer directement sur l'inscription/connexion,
+  // plutôt que de le laisser chercher l'icône compte lui-même une fois dans
+  // le jeu. On nettoie le paramètre tout de suite (même logique que
+  // ?paiement= dans AccountScreen.jsx) pour qu'un simple rafraîchissement
+  // ne rouvre pas l'écran à chaque fois.
+  const [showAccount, setShowAccount] = useState(() => {
+    if (typeof window === "undefined") return false;
+    const params = new URLSearchParams(window.location.search);
+    return params.get("compte") === "1";
+  });
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.has("compte")) {
+      params.delete("compte");
+      const rest = params.toString();
+      window.history.replaceState({}, "", window.location.pathname + (rest ? `?${rest}` : ""));
+    }
+  }, []);
   // Vrai le temps que l'utilisateur choisisse un nouveau mot de passe après
   // avoir cliqué un lien "mot de passe oublié" reçu par email (voir
   // AccountScreen.jsx). Le lien Supabase pointe vers cette même page avec un
