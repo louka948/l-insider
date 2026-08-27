@@ -59,7 +59,19 @@ async function handler(req: Request): Promise<Response> {
           break;
         }
         const plan = (session.metadata && session.metadata.plan) || (session.mode === "subscription" ? "subscription" : "lifetime");
-        await supabaseInsert(supabaseUrl, serviceRoleKey, "purchases", {
+        // Idempotence (audit du 23 août 2026, section 23, 🟡 MOYEN) : Stripe
+        // peut renvoyer le même événement checkout.session.completed
+        // plusieurs fois (retry réseau de leur côté si notre réponse tarde
+        // ou échoue) — sans ça, on insérait une deuxième ligne purchases
+        // pour le même achat à chaque renvoi. On upsert maintenant sur la
+        // colonne qui identifie l'achat de façon unique selon le type de
+        // plan (voir contrainte unique ajoutée dans
+        // docs/migration-idempotence-webhook.sql), avec
+        // resolution=ignore-duplicates : si une ligne avec le même
+        // identifiant Stripe existe déjà, PostgREST ne fait rien plutôt que
+        // d'échouer ou de dupliquer.
+        const conflictColumn = plan === "subscription" ? "stripe_subscription_id" : "stripe_payment_intent_id";
+        await supabaseUpsertIgnore(supabaseUrl, serviceRoleKey, "purchases", conflictColumn, {
           user_id: userId,
           type: plan === "subscription" ? "subscription" : "lifetime",
           status: session.mode === "subscription" ? "trialing" : "active",
@@ -157,19 +169,32 @@ async function verifyStripeSignature(payload: string, header: string, secret: st
   return expected === signature;
 }
 
-async function supabaseInsert(url: string | undefined, key: string | undefined, table: string, row: Record<string, unknown>) {
+// Insertion idempotente : si une ligne existe déjà avec la même valeur sur
+// `conflictColumn` (contrainte unique requise en base, voir
+// docs/migration-idempotence-webhook.sql), PostgREST l'ignore silencieusement
+// au lieu de renvoyer une erreur de contrainte ou d'insérer un doublon.
+// `conflictColumn` doit correspondre exactement au nom de colonne d'une
+// contrainte unique existante côté Postgres — sinon PostgREST renvoie une
+// erreur 400.
+async function supabaseUpsertIgnore(
+  url: string | undefined,
+  key: string | undefined,
+  table: string,
+  conflictColumn: string,
+  row: Record<string, unknown>
+) {
   if (!url || !key) throw new Error("Configuration Supabase manquante (SUPABASE_SERVICE_ROLE_KEY).");
-  const res = await fetch(`${url}/rest/v1/${table}`, {
+  const res = await fetch(`${url}/rest/v1/${table}?on_conflict=${conflictColumn}`, {
     method: "POST",
     headers: {
       apikey: key,
       Authorization: `Bearer ${key}`,
       "Content-Type": "application/json",
-      Prefer: "return=minimal",
+      Prefer: "resolution=ignore-duplicates,return=minimal",
     },
     body: JSON.stringify(row),
   });
-  if (!res.ok) throw new Error(`Insertion ${table} échouée : ${await res.text()}`);
+  if (!res.ok) throw new Error(`Upsert ${table} échoué : ${await res.text()}`);
 }
 
 async function supabasePatch(url: string | undefined, key: string | undefined, table: string, filter: string, patch: Record<string, unknown>) {
