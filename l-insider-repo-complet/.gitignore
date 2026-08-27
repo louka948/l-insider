@@ -38,11 +38,13 @@ shots/
 skills-lock.json
 dist/
 
-# Brouillon de landing page (site vitrine, hors pipeline app) généré en
-# session le 27 août 2026 — livré à l'utilisateur en fichier + Artifact,
-# pas encore de décision sur son dépôt/déploiement définitif. Jamais à
-# versionner tel quel ici tant que ça reste un brouillon.
-landing/
+# landing/linsider-landing.html (la landing page) est maintenant versionné
+# : décision prise le 27 août 2026 de la déployer pour de vrai via GitHub
+# Pages (voir .github/workflows/deploy-pages.yml à la racine du dépôt) —
+# elle n'est donc plus un simple brouillon. Seuls les autres fichiers de ce
+# dossier (captures, scripts one-off) restent ignorés.
+landing/*
+!landing/linsider-landing.html
 
 # Paquet de déploiement combiné (landing/ à la racine + jeu buildé dans
 # jouer/) assemblé en session le 27 août 2026 pour que l'utilisateur puisse
