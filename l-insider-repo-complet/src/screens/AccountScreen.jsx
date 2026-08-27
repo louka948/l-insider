@@ -22,8 +22,12 @@ function AccountScreen({
   onActivateBetaAccess,
   passwordRecovery,
   onPasswordRecoveryHandled,
+  intendedPlan, // 'subscription' | 'lifetime' | null — voir imposteurfoot_11.html (?plan= dans l'URL, déclenché depuis les cartes de prix de la landing page). Sert à afficher un rappel clair de l'offre visée tant qu'on n'est pas connecté, plutôt que de laisser un simple formulaire de compte sans contexte.
 }) {
-  const [tab, setTab] = useState("signin"); // 'signin' | 'signup' | 'forgot'
+  // Si on arrive avec une offre déjà en tête, autant ouvrir directement sur
+  // "Créer un compte" plutôt que sur "Se connecter" — c'est le cas le plus
+  // probable pour quelqu'un qui clique une carte de prix.
+  const [tab, setTab] = useState(intendedPlan ? "signup" : "signin"); // 'signin' | 'signup' | 'forgot'
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -536,6 +540,20 @@ function AccountScreen({
 
           {SUPABASE_CONFIGURED && !passwordRecovery && session === null && (
             <>
+              {intendedPlan && (
+                <div style={{ ...styles.anonBanner, cursor: "default", marginBottom: 16 }}>
+                  <AccountIcon size={18} color={COLORS.gold} />
+                  <div style={{ textAlign: "left", flex: 1, minWidth: 0 }}>
+                    <div style={styles.anonBannerTitle}>
+                      Offre choisie : {intendedPlan === "lifetime" ? "Accès à vie (9,99€)" : "Abonnement (3,99€/mois)"}
+                    </div>
+                    <div style={styles.anonBannerSub}>
+                      Un compte est obligatoire pour payer — crée-en un ci-dessous, tu seras redirigé vers le paiement juste après.
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <p style={styles.discussSub}>
                 Un compte garde ton historique de parties et ta photo de profil. Un abonnement ou l'accès à vie débloque en plus toutes les options avancées de partie, sans limite.
               </p>
