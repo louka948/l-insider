@@ -1,0 +1,45 @@
+# Environnement du sandbox (pas du projet) — jamais à versionner.
+.cache/
+.claude/
+.config/
+.gitconfig
+.npm/
+.npm-global/
+.ssh/
+.wget-hsts
+
+# Copie locale de doc du projet Claude (claude/etat-imposteur-foot.md) —
+# synchronisée via l'outil Projects, ne fait pas partie du code du jeu,
+# jamais à versionner ici.
+claude/
+
+# Dépendances régénérables (npm install les recrée).
+build/node_modules/
+node_modules/
+
+# Fichiers générés par build/assemble.js (noyau + screens/*.jsx réunis) —
+# régénérés à chaque npm test / npm run dev, jamais à versionner.
+.assembled-for-tests.html
+dev-preview.html
+
+# Copie de index.html utilisée par Capacitor comme "webDir" (voir
+# capacitor.config.ts) — régénérée par `npm run cap:sync`, jamais à éditer
+# directement (même logique que index.html à la racine : c'est un artefact
+# de build, pas une source).
+www/
+
+# Captures d'écran produites par scripts/screenshot-*.js (auto-critique
+# visuelle pendant une session de design) — jamais à versionner.
+shots/
+
+# Skills Claude Code installés localement via `npx skills add ...` (outillage
+# personnel de session, sans rapport avec le jeu) — jamais à versionner ici.
+.agents/
+skills-lock.json
+dist/
+
+# Brouillon de landing page (site vitrine, hors pipeline app) généré en
+# session le 27 août 2026 — livré à l'utilisateur en fichier + Artifact,
+# pas encore de décision sur son dépôt/déploiement définitif. Jamais à
+# versionner tel quel ici tant que ça reste un brouillon.
+landing/
