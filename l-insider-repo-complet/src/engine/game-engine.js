@@ -150,8 +150,23 @@ function pickPair(pool, usedKeys) {
       .map((p) => ({ p, s: scorePair(anchor, p) }))
       .sort((a, b) => b.s - a.s);
     if (scored.length === 0) continue;
-    const topN = scored.slice(0, Math.min(8, scored.length));
-    const partner = topN[Math.floor(Math.random() * topN.length)].p;
+    // On ne garde que les partenaires vraiment proches du meilleur score
+    // (marge de 2 points) plutôt qu'un "top 8" fixe par rang. Sur un grand
+    // pool, un top-8 par rang pouvait inclure un candidat nettement moins
+    // bien assorti que le meilleur (ex. constaté en jeu : Vieira/Guardiola
+    // scorait 12.9 alors que Vieira/Makélélé scorait 15.5 — même sous-poste
+    // "DM" au sens large, mais un profil de jeu différent, destructeur vs
+    // relayeur profond ; Guardiola n'était même pas dans le vrai top 8 de
+    // Vieira sur l'ensemble du pool, seulement remonté par un pool réduit
+    // via les filtres époque/catégorie de cette partie précise).
+    // Filet de sécurité à 3 candidats minimum pour garder de la variété
+    // dans les petits pools (catégories filtrées par club/époque/génération)
+    // où une marge de 2 points serait trop stricte.
+    const MARGIN = 2;
+    const maxScore = scored[0].s;
+    let closeCandidates = scored.filter((c) => c.s >= maxScore - MARGIN);
+    if (closeCandidates.length < 3) closeCandidates = scored.slice(0, Math.min(3, scored.length));
+    const partner = closeCandidates[Math.floor(Math.random() * closeCandidates.length)].p;
     const key = [anchor.n, partner.n].sort().join("|");
     if (!usedKeys.has(key)) return { a: anchor, b: partner, key };
   }
