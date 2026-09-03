@@ -326,6 +326,40 @@ function AccountScreen({
     setPassword("");
   }
 
+  // Connexion via Google (OAuth), en alternative à email/mot de passe.
+  // supabaseClient.auth.signInWithOAuth() ne renvoie pas de session — il
+  // redirige tout de suite le navigateur vers l'écran de consentement
+  // Google (l'utilisateur QUITTE l'app un instant), puis Google renvoie
+  // vers `redirectTo` avec un jeton dans l'URL que supabase-js détecte tout
+  // seul au chargement (detectSessionInUrl, actif par défaut — même
+  // mécanisme que le lien de réinitialisation de mot de passe plus bas) et
+  // transforme en session. `session` (prop, tenue à jour par
+  // onAuthStateChange dans ImposteurFoot()) se met alors à jour tout seul,
+  // ce qui bascule cet écran vers la vue "connecté" — rien à faire ici
+  // après la redirection.
+  //
+  // ⚠️ Ça suppose que le provider "Google" est activé côté Supabase
+  // (Authentication → Sign In / Providers) avec un Client ID/Secret Google
+  // Cloud valides, ET que `redirectTo` figure dans les "Redirect URLs"
+  // autorisées côté Supabase (Authentication → URL Configuration) — sinon
+  // Supabase refuse la redirection même si le provider est actif.
+  async function handleGoogleSignIn() {
+    setError(null);
+    setInfo(null);
+    setLoading(true);
+    const { error: oauthError } = await supabaseClient.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: window.location.origin },
+    });
+    // En cas de succès, le navigateur a déjà quitté la page à ce stade —
+    // ce setLoading(false) ne sert que pour le cas d'erreur (ex. provider
+    // mal configuré), où on reste sur place.
+    setLoading(false);
+    if (oauthError) {
+      setError(traduireErreur(oauthError.message));
+    }
+  }
+
   // Demande d'un lien de réinitialisation de mot de passe — Supabase envoie
   // un email avec un lien qui pointe vers cette même page (redirectTo, même
   // logique que emailRedirectTo dans handleSignUp ci-dessus) contenant un
@@ -586,14 +620,27 @@ function AccountScreen({
               <p style={styles.discussSub}>Un code d'accès bêta ? Crée d'abord un compte ci-dessous, tu pourras le saisir juste après.</p>
 
               {tab !== "forgot" && (
-                <div style={styles.accountTabs}>
-                  <button style={tab === "signin" ? styles.accountTabActive : styles.accountTab} onClick={() => switchTab("signin")}>
-                    Se connecter
+                <>
+                  <button type="button" onClick={handleGoogleSignIn} style={{ ...styles.googleBtn, opacity: loading ? 0.6 : 1 }} disabled={loading}>
+                    <GoogleIcon size={18} />
+                    Continuer avec Google
                   </button>
-                  <button style={tab === "signup" ? styles.accountTabActive : styles.accountTab} onClick={() => switchTab("signup")}>
-                    Créer un compte
-                  </button>
-                </div>
+
+                  <div style={styles.orDivider}>
+                    <span style={styles.orDividerLine} />
+                    <span style={styles.orDividerText}>ou</span>
+                    <span style={styles.orDividerLine} />
+                  </div>
+
+                  <div style={styles.accountTabs}>
+                    <button style={tab === "signin" ? styles.accountTabActive : styles.accountTab} onClick={() => switchTab("signin")}>
+                      Se connecter
+                    </button>
+                    <button style={tab === "signup" ? styles.accountTabActive : styles.accountTab} onClick={() => switchTab("signup")}>
+                      Créer un compte
+                    </button>
+                  </div>
+                </>
               )}
 
               {error && <p style={styles.errorText}>{error}</p>}
