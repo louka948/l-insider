@@ -264,7 +264,19 @@ function AccountScreen({
         // ⚠️ Ce domaine doit quand même figurer dans la liste "Redirect
         // URLs" côté Supabase (Authentication → URL Configuration), sinon
         // Supabase refuse la redirection même avec ce paramètre.
-        emailRedirectTo: window.location.origin,
+        //
+        // ⚠️ Bug trouvé et corrigé le 3 sept. 2026 : window.location.origin
+        // SEUL (sans le chemin) renvoie vers la racine du site
+        // (linsider.netlify.app/), qui est la page de présentation/landing
+        // — un fichier totalement différent de jouer/index.html, sans
+        // aucune trace de Supabase dedans (voir CLAUDE.md, deux fichiers
+        // HTML autonomes générés séparément). Le jeton de la redirection
+        // atterrissait donc sur une page qui ne sait pas le lire : lien
+        // cliqué "avec succès" mais utilisateur jamais reconnecté, remis
+        // sur la page d'accueil comme s'il n'avait rien fait. En ajoutant
+        // window.location.pathname (ex. "/jouer/"), la redirection revient
+        // sur la bonne page, celle qui contient réellement supabaseClient.
+        emailRedirectTo: window.location.origin + window.location.pathname,
       },
     });
     setLoading(false);
@@ -343,13 +355,22 @@ function AccountScreen({
   // Cloud valides, ET que `redirectTo` figure dans les "Redirect URLs"
   // autorisées côté Supabase (Authentication → URL Configuration) — sinon
   // Supabase refuse la redirection même si le provider est actif.
+  //
+  // ⚠️ window.location.origin SEUL (sans window.location.pathname) renvoie
+  // à la racine du site (la page de présentation/landing, un fichier HTML
+  // totalement différent sans Supabase dedans) plutôt que sur cette page
+  // (jouer/index.html) — bug constaté juste après la mise en prod : le
+  // retour de Google réussissait bien, mais atterrissait sur la landing
+  // page qui ne sait pas lire le jeton, donc jamais reconnecté. Voir le
+  // même correctif sur emailRedirectTo (handleSignUp) et redirectTo
+  // (handleForgotPassword) plus bas, touchés par exactement le même bug.
   async function handleGoogleSignIn() {
     setError(null);
     setInfo(null);
     setLoading(true);
     const { error: oauthError } = await supabaseClient.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: window.location.origin },
+      options: { redirectTo: window.location.origin + window.location.pathname },
     });
     // En cas de succès, le navigateur a déjà quitté la page à ce stade —
     // ce setLoading(false) ne sert que pour le cas d'erreur (ex. provider
@@ -383,7 +404,10 @@ function AccountScreen({
     }
     setLoading(true);
     const { error: resetError } = await supabaseClient.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: window.location.origin,
+      // + window.location.pathname : voir le commentaire du même bug sur
+      // emailRedirectTo (handleSignUp) et redirectTo (handleGoogleSignIn)
+      // plus haut — sans le chemin, ce lien renvoyait vers la landing page.
+      redirectTo: window.location.origin + window.location.pathname,
     });
     setLoading(false);
     if (resetError) {
