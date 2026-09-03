@@ -364,21 +364,61 @@ function AccountScreen({
   // page qui ne sait pas lire le jeton, donc jamais reconnecté. Voir le
   // même correctif sur emailRedirectTo (handleSignUp) et redirectTo
   // (handleForgotPassword) plus bas, touchés par exactement le même bug.
+  //
+  // Cas de l'appli native (iOS/Android, Capacitor) : ce qui marche sur le
+  // web ci-dessus NE marche PAS dans l'appli — Google détecte et refuse
+  // systématiquement l'OAuth depuis une WebView embarquée (erreur
+  // "disallowed_useragent"), qui est exactement ce qu'est la fenêtre de
+  // l'appli. Il faut donc, UNIQUEMENT dans ce cas :
+  //  1. Demander à Supabase l'URL de consentement Google sans qu'il essaie
+  //     de naviguer lui-même (skipBrowserRedirect: true — sinon il navigue
+  //     la WebView elle-même, exactement le cas que Google bloque).
+  //  2. Ouvrir cette URL dans le navigateur SYSTÈME (Capacitor.Plugins.
+  //     Browser.open — un onglet Safari/Chrome à part, PAS la WebView de
+  //     l'app) via le pont vendored build/capacitor-native-bridge.js.
+  //  3. `redirectTo` pointe vers le schéma d'URL personnalisé de l'app
+  //     (com.imposteurfoot.app://auth-callback, enregistré dans
+  //     ios/App/App/Info.plist et android/.../AndroidManifest.xml, et dans
+  //     les "Redirect URLs" autorisées côté Supabase) plutôt que vers une
+  //     page web — c'est ce qui permet à l'OS de rouvrir l'app au lieu de
+  //     laisser l'utilisateur bloqué dans le navigateur système.
+  //  4. Le retour effectif (jeton → session) est géré par l'écouteur
+  //     "appUrlOpen" dans imposteurfoot_11.html (ImposteurFoot()), pas ici
+  //     — cette fonction n'a plus la main une fois le navigateur ouvert.
   async function handleGoogleSignIn() {
     setError(null);
     setInfo(null);
     setLoading(true);
-    const { error: oauthError } = await supabaseClient.auth.signInWithOAuth({
+
+    const isNative = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+    const redirectTo = isNative
+      ? "com.imposteurfoot.app://auth-callback"
+      : window.location.origin + window.location.pathname;
+
+    const { data, error: oauthError } = await supabaseClient.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: window.location.origin + window.location.pathname },
+      options: { redirectTo, skipBrowserRedirect: isNative },
     });
-    // En cas de succès, le navigateur a déjà quitté la page à ce stade —
-    // ce setLoading(false) ne sert que pour le cas d'erreur (ex. provider
-    // mal configuré), où on reste sur place.
-    setLoading(false);
+
     if (oauthError) {
+      setLoading(false);
       setError(traduireErreur(oauthError.message));
+      return;
     }
+
+    if (isNative && data && data.url) {
+      await window.Capacitor.Plugins.Browser.open({ url: data.url });
+      // setLoading(false) n'est PAS appelé ici : on reste en attente
+      // jusqu'au retour du deep link (écouteur "appUrlOpen"), qui ferme le
+      // navigateur système et remet loading à false via un re-rendu normal
+      // (session non-null bascule cet écran ailleurs de toute façon).
+      return;
+    }
+
+    // Web classique : signInWithOAuth a déjà navigué le navigateur à ce
+    // stade (pas de skipBrowserRedirect) — ce setLoading(false) ne sert
+    // qu'au cas où le navigateur n'a en fait pas quitté la page.
+    setLoading(false);
   }
 
   // Demande d'un lien de réinitialisation de mot de passe — Supabase envoie
