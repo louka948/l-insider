@@ -23,6 +23,11 @@ button, input, select, textarea { -webkit-tap-highlight-color: transparent; }
      puis config Supabase — comptes/premium. -->
 <script src="build/supabase-js.min.js"></script>
 <script src="src/data/supabase-config.js"></script>
+<!-- Pont Capacitor Browser/App (natif uniquement, sans effet sur le site
+     web classique — voir le commentaire en tête du fichier) : nécessaire à
+     la connexion Google dans l'appli, voir handleGoogleSignIn dans
+     AccountScreen.jsx. -->
+<script src="build/capacitor-native-bridge.js"></script>
 <!-- Configuration Stripe (paiement) — valeurs publiques, voir le fichier. -->
 <script src="src/data/stripe-config.js"></script>
 <!-- Code d'accès bêta (débloque tout sans compte ni paiement) — voir le
@@ -955,6 +960,56 @@ function ImposteurFoot() {
       }
     });
     return () => listener.subscription.unsubscribe();
+  }, []);
+
+  // Retour de la connexion Google dans l'appli native (iOS/Android) — voir
+  // handleGoogleSignIn dans AccountScreen.jsx pour la partie "aller
+  // ouvrir le navigateur système". Ici, c'est le retour : Capacitor.Plugins.
+  // App remonte l'évènement "appUrlOpen" quand l'OS relance l'app via le
+  // schéma d'URL personnalisé (com.imposteurfoot.app://auth-callback,
+  // enregistré dans ios/App/App/Info.plist et
+  // android/.../AndroidManifest.xml) — ce lien contient le jeton envoyé par
+  // Supabase, sous une forme qui dépend du "flow type" de supabase-js :
+  // soit dans le fragment (#access_token=...&refresh_token=..., flux
+  // implicite), soit en query (?code=..., flux PKCE). On gère les deux sans
+  // avoir à connaître lequel est actif — un seul des deux blocs matchera.
+  // Sans effet sur le web (supabaseClient.auth.onAuthStateChange ci-dessus
+  // gère déjà ce cas via detectSessionInUrl) : ce useEffect ne fait rien du
+  // tout tant que window.Capacitor n'existe pas (site web classique).
+  useEffect(() => {
+    if (!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform())) return;
+    if (!supabaseClient || !window.Capacitor.Plugins || !window.Capacitor.Plugins.App) return;
+    const handlePromise = window.Capacitor.Plugins.App.addListener("appUrlOpen", async ({ url }) => {
+      try {
+        const hashIndex = url.indexOf("#");
+        const queryIndex = url.indexOf("?");
+        if (hashIndex !== -1) {
+          const params = new URLSearchParams(url.slice(hashIndex + 1));
+          const access_token = params.get("access_token");
+          const refresh_token = params.get("refresh_token");
+          if (access_token && refresh_token) {
+            await supabaseClient.auth.setSession({ access_token, refresh_token });
+          }
+        } else if (queryIndex !== -1) {
+          const params = new URLSearchParams(url.slice(queryIndex + 1));
+          const code = params.get("code");
+          if (code) {
+            await supabaseClient.auth.exchangeCodeForSession(code);
+          }
+        }
+      } catch (e) {
+        console.error("[L'Insider] Échec du traitement du retour Google (deep link) :", e);
+      }
+      // setSession/exchangeCodeForSession déclenchent onAuthStateChange
+      // tout seuls (voir l'effet juste au-dessus) — pas besoin de remettre
+      // `session` à jour nous-mêmes ici, juste refermer l'onglet système.
+      if (window.Capacitor.Plugins.Browser) {
+        window.Capacitor.Plugins.Browser.close().catch(() => {});
+      }
+    });
+    return () => {
+      handlePromise.then((handle) => handle.remove()).catch(() => {});
+    };
   }, []);
 
   // Statut premium (abonnement actif/en essai, ou accès à vie) — même
