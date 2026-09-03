@@ -103,6 +103,41 @@ workflows:
           # repart d'un dossier propre si besoin.
           if [ ! -f android/gradlew ]; then rm -rf android && npx cap add android; fi
           npx cap sync android
+      - name: Patch AndroidManifest (deep link connexion Google)
+        script: |
+          set -e
+          cd l-insider-repo-complet
+          # android/ n'etant pas versionne (voir note ci-dessus), le
+          # AndroidManifest.xml genere par `cap add android` est toujours le
+          # template Capacitor par defaut, SANS le intent-filter du schema
+          # d'URL personnalise (com.imposteurfoot.app://...) necessaire au
+          # retour de la connexion Google (voir handleGoogleSignIn dans
+          # AccountScreen.jsx + le meme intent-filter dans le
+          # AndroidManifest.xml local de ce depot, qui sert de reference
+          # mais n'atteint jamais GitHub). Sans ce patch, l'OS ne saurait
+          # pas relancer l'app quand Supabase redirige vers ce schema apres
+          # Google -- l'utilisateur resterait bloque dans le navigateur
+          # systeme. Ajoute le 3 sept. 2026.
+          python3 - <<'PYEOF'
+          path = "android/app/src/main/AndroidManifest.xml"
+          with open(path) as f:
+              content = f.read()
+          marker = '<category android:name="android.intent.category.LAUNCHER" />\n            </intent-filter>'
+          if marker not in content:
+              raise SystemExit("Marqueur introuvable dans AndroidManifest.xml -- le template Capacitor a change, voir CLAUDE.md.")
+          insertion = marker + '''
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="com.imposteurfoot.app" />
+            </intent-filter>'''
+          content = content.replace(marker, insertion, 1)
+          with open(path, "w") as f:
+              f.write(content)
+          print("AndroidManifest.xml patche : intent-filter deep link Google ajoute.")
+          PYEOF
       - name: Apply custom app icon
         script: |
           set -e
