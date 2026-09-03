@@ -77,5 +77,27 @@
 	<string>L'Insider a besoin d'accéder à l'appareil photo pour prendre une photo de profil.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>L'Insider a besoin d'accéder à vos photos pour choisir une photo de profil.</string>
+	<!-- Schéma d'URL personnalisé ("com.imposteurfoot.app://...") pour le
+	     retour de la connexion Google : Google refuse OAuth dans une WebView
+	     embarquée (erreur "disallowed_useragent"), donc handleGoogleSignIn
+	     (AccountScreen.jsx) ouvre le navigateur SYSTÈME via le plugin
+	     Capacitor Browser plutôt que de naviguer dans l'app elle-même.
+	     Une fois la connexion Google validée, Supabase redirige ce
+	     navigateur système vers ce schéma — iOS route alors ce lien vers
+	     l'app (SceneDelegate.scene(_:openURLContexts:), déjà branché sur
+	     Capacitor par défaut), qui déclenche l'évènement JS "appUrlOpen"
+	     écouté dans imposteurfoot_11.html (ImposteurFoot()) pour transformer
+	     le jeton reçu en session Supabase. Ce même schéma doit aussi figurer
+	     dans les "Redirect URLs" autorisées côté Supabase (Authentication →
+	     URL Configuration), sinon Supabase refuse la redirection. -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.imposteurfoot.app</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>
