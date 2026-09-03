@@ -39,6 +39,7 @@ const LOCAL_SCRIPTS = [
   "src/engine/game-engine.js",
   "build/supabase-js.min.js",
   "src/data/supabase-config.js",
+  "build/capacitor-native-bridge.js",
   "src/data/stripe-config.js",
   "src/data/beta-access.js",
 ];
