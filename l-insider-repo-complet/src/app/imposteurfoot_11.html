@@ -538,6 +538,22 @@ function AccountIcon({ size = 18, color = "currentColor" }) {
   );
 }
 
+// Logo "G" multicolore de Google — tracé officiel (les 4 couleurs de marque
+// sont fixes, contrairement aux autres icônes de ce fichier qui suivent la
+// prop `color` : les règles de marque Google imposent le logo tel quel sur
+// un bouton "Se connecter avec Google", jamais recoloré). Utilisé uniquement
+// par le bouton Google d'AccountScreen.jsx.
+function GoogleIcon({ size = 18 }) {
+  return (
+    <svg viewBox="0 0 48 48" width={size} height={size}>
+      <path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.9 2.4 30.5 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.1 17.7 9.5 24 9.5z" />
+      <path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.6c-.5 3-2.2 5.4-4.6 7.1l7.4 5.7c4.3-4 6.8-9.9 6.8-17.3z" />
+      <path fill="#FBBC05" d="M10.5 19.3a14.5 14.5 0 0 0 0 9.4l-7.9 6.1a24 24 0 0 1 0-21.6l7.9 6.1z" />
+      <path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.9l-7.4-5.7c-2.1 1.4-4.8 2.2-8.5 2.2-6.3 0-11.6-3.6-13.5-8.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z" />
+    </svg>
+  );
+}
+
 
 // Données RAW_PLAYERS / COACH_NAMES / RAW_PURE_COACHES / PLAYERS / LEAGUES
 // déplacées dans data/players.js (Étape 3 du plan de remise en ordre de
@@ -1793,6 +1809,10 @@ const styles = {
   anonBannerSub: { fontSize: 11.5, color: COLORS.textPrimary, opacity: 0.7, marginTop: 2, lineHeight: 1.35 },
 
   // Écran de compte (inscription/connexion/profil) — voir AccountScreen.jsx.
+  googleBtn: { width: "100%", padding: "12px 16px", borderRadius: RADIUS.md, border: "1px solid rgba(255,255,255,0.2)", background: "rgba(255,255,255,0.05)", color: COLORS.textPrimary, fontWeight: 700, fontSize: 14, display: "flex", alignItems: "center", justifyContent: "center", gap: 10, cursor: "pointer", fontFamily: "'Libre Franklin', sans-serif" },
+  orDivider: { display: "flex", alignItems: "center", gap: 10, margin: "16px 0" },
+  orDividerLine: { flex: 1, height: 1, background: COLORS.panelHairline },
+  orDividerText: { fontSize: 11.5, fontWeight: 700, color: COLORS.textPrimary, opacity: 0.5, textTransform: "uppercase", letterSpacing: 0.5 },
   accountTabs: { display: "flex", gap: 8, marginBottom: 16, background: "rgba(0,0,0,0.2)", borderRadius: RADIUS.md, padding: 4 },
   accountTab: { flex: 1, padding: "9px 10px", borderRadius: RADIUS.sm, border: "none", background: "transparent", color: COLORS.textPrimary, opacity: 0.6, fontWeight: 700, fontSize: 13, cursor: "pointer", fontFamily: "'Libre Franklin', sans-serif" },
   accountTabActive: { flex: 1, padding: "9px 10px", borderRadius: RADIUS.sm, border: "none", background: COLORS.gold, color: COLORS.deepGreen, opacity: 1, fontWeight: 800, fontSize: 13, cursor: "pointer", fontFamily: "'Libre Franklin', sans-serif" },
